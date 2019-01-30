@@ -35,113 +35,72 @@ def ComputePlanetDistances(pw):
                 dists.append(x)
                 distances[p.PlanetID()][q.PlanetID()] = actual_distance
             # endif
-        #endfor
+        # endfor
         nearestNeighbors[p.PlanetID()] = sorted(dists, key=lambda x: x[1])
+    # endfor
+
 
 def DoTurn(pw):
     try:
-        if distances == None or distances == {}:
+        debug("DO TURN")
+        if distances == {}:
             ComputePlanetDistances(pw)
         # endif
-
-        dictTargets = {}
-        foreign_planets = pw.NotMyPlanets()
-        enemy_planets = pw.EnemyPlanets()
+        foreign_planets = get_foreign_planets(pw)
+        enemy_planets = get_enemy_planets(pw)
+        my_planets = get_my_planets(pw)
         hardness = 0
-        for foreign_planet in foreign_planets:
-            hardness = foreign_planet.NumShips()
+        foreign_center_x, foreign_center_y, foreign_distances_to_center_map = calculate_center_of_gravity(
+            foreign_planets)
+        own_center_x, own_center_y, own_distances_to_center_map = calculate_center_of_gravity(my_planets)
 
-            incoming_fleets = get_incoming_fleets(foreign_planet.PlanetID(), pw)
-            for incoming_fleet in incoming_fleets:
-                if incoming_fleet.Owner() == 1:
-                    hardness -= incoming_fleet.NumShips()
-                else:
-                    hardness += incoming_fleet.NumShips()
-                    # endif
-            # endfor
-
-            if (hardness > 0):
-                closest_own_planet = find_closest_own_planets(foreign_planet.PlanetID(), pw)[0]
-                debug("dict {0} {1}".format(closest_own_planet, foreign_planet.PlanetID()))
-                distance_to_my_closest_planet = distances[closest_own_planet][foreign_planet.PlanetID()]
-
-                hardness = hardness * distance_to_my_closest_planet * distance_to_my_closest_planet
-
-                if enemy_planets.count(foreign_planet) > 0:
-                    # account to capture it it's going to take at least
-                    # distance_to_my_closest_planet turns of enemy holding this.
-                    # Which would be even worse.
-                    # So it's easier taking it now than in the future.
-                    hardness -= foreign_planet.GrowthRate() * distance_to_my_closest_planet
-                # endif
-
-            dictTargets[foreign_planet.PlanetID()] = hardness
-        # endfor
-        debug("Dict targets size: {0}".format(len(dictTargets)))
-        sorted_targets = sorted(dictTargets.items(), key=operator.itemgetter(1))
-
-        i = 0
-
-        while (i<1):
-            i += 1
-            main_target_planet_id = sorted_targets[i][0]
-            enemy_ships_to_defeat_on_planet = pw.GetPlanet(main_target_planet_id).NumShips()
-
-            incoming_fleets = get_incoming_fleets(main_target_planet_id, pw)
-            for incoming_fleet in incoming_fleets:
-                if incoming_fleet.Owner() == 2:
-                    enemy_ships_to_defeat_on_planet += incoming_fleet.NumShips()
-                else:
-                    enemy_ships_to_defeat_on_planet -= incoming_fleet.NumShips()
-                #endif
-            #endfor
-
-
-            debug("Main target id: {0}".format(main_target_planet_id))
-            own_optimum_attacking_planets = find_closest_own_planets(main_target_planet_id, pw)
-
-            for own_optimum_attacking_planet in own_optimum_attacking_planets[:4]:
-                attacking_planet_total_ships_at_disposal = pw.GetPlanet(own_optimum_attacking_planet).NumShips() - 1
-
-                incoming_fleets = get_incoming_opponent_fleets(own_optimum_attacking_planet, pw)
-                incoming_ships = 0
-                for incoming_fleet in incoming_fleets:
-                    incoming_ships += incoming_fleet.NumShips()
-                #endfor
-
-                if (incoming_ships >= attacking_planet_total_ships_at_disposal):
-                    #TODO defend here
-                    debug("Danger, cancel attack : {0} -> [{1}] -> {2}".format(own_optimum_attacking_planet, main_target_planet_id, fleet_number))
-                else:
-                    fleet_number = random.randint(int((attacking_planet_total_ships_at_disposal - incoming_ships)/4),
-                                                  int((attacking_planet_total_ships_at_disposal - incoming_ships)/2))
-                    fleet_number = min(fleet_number, enemy_ships_to_defeat_on_planet)
-                    if (fleet_number>0):
-                        debug("Issue order: {0} -> [{1}] -> {2}".format(own_optimum_attacking_planet, main_target_planet_id, fleet_number))
-                        pw.IssueOrderByIds(own_optimum_attacking_planet, main_target_planet_id, fleet_number)
-                    #endif
-                #endif
-            #endfor
-        #endwhile
-    except Exception, e:
-        debug(e.message)
-        pass
-
-def get_incoming_fleets(planet_id, pw):
-    return filter(lambda x: x.DestinationPlanet == planet_id, pw.Fleets())
-
-def get_incoming_opponent_fleets(planet_id, pw):
-    return filter(lambda x: x.DestinationPlanet == planet_id and x.Owner()==2, pw.Fleets())
-
-def find_closest_own_planets(target_planet_id, pw):
-    sources = []
-    my_planets_ids = map(lambda x: x.PlanetID(), pw.MyPlanets())
-    for nearest_neighbor in nearestNeighbors[target_planet_id]:
-        if my_planets_ids.count(nearest_neighbor[0]):
-            sources.append(nearest_neighbor[0])
+        for my_planet in my_planets:
+            total_invasion_ships_for_planet = get_available_invasion_ships(my_planet, pw)
+            debug("Processing planet {0} that contains currently {1} ships. Available for invasion: {2} ships"
+                  .format(my_planet.PlanetID(), my_planet.NumShips(), total_invasion_ships_for_planet))
+            if total_invasion_ships_for_planet >= 1:
+                invade_planets(my_planet, pw, total_invasion_ships_for_planet)
             # endif
+        # endfor
+    except Exception, e:
+        debug(str(e) + str(e.message))
+
+
+def invade_planets(my_planet, pw, total_invasion_ships_for_planet):
+    targets_of_opportunity = {}
+
+    for nearestNeighborIDs in nearestNeighbors[my_planet.PlanetID()]:
+        nearestNeighbor = pw.GetPlanet(nearestNeighborIDs[0])
+        distance_to_planet = distances[my_planet.PlanetID()][nearestNeighbor.PlanetID()]
+        necessary_ships_to_invade = get_necessary_invasion_ships(nearestNeighbor, distance_to_planet, pw)
+        opportunity = calculate_opportunity(total_invasion_ships_for_planet, necessary_ships_to_invade, nearestNeighbor,
+                              distance_to_planet)
+        debug(
+            "Looking to invade planet {0} with {1} ships landed on it at distance {2} from planet "
+            "and at growth rate {3}. Opportunity: {4}"
+            .format(nearestNeighbor.PlanetID(), nearestNeighbor.NumShips(), distance_to_planet,
+                    nearestNeighbor.GrowthRate(), opportunity))
+
+        targets_of_opportunity[nearestNeighbor] = opportunity
     # endfor
-    return sources
+
+    for opportunity_target in reversed(sorted(targets_of_opportunity, key=targets_of_opportunity.get)):
+        distance_to_planet = distances[my_planet.PlanetID()][opportunity_target.PlanetID()]
+        debug(
+            "Target of opportunity planet {0} with opportunity {1} at distance {2}"
+                .format(opportunity_target.PlanetID(), targets_of_opportunity[opportunity_target], distance_to_planet))
+        sent_ships = 0
+        if opportunity_target.Owner() != 1:
+            necessary_ships_to_invade = get_necessary_invasion_ships(opportunity_target,distance_to_planet, pw)
+            if necessary_ships_to_invade > 0:
+                sent_ships = min(total_invasion_ships_for_planet, necessary_ships_to_invade + 1)
+                send(pw, my_planet, opportunity_target, sent_ships, distances)
+            # endif
+        # endif
+        total_invasion_ships_for_planet -= sent_ships
+        if total_invasion_ships_for_planet <= 1:
+            break
+    # endfor
 
 
 def main():

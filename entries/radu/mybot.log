@@ -1,1 +1,33 @@
-2019-01-30 01:15:05,480 starting
+2019-01-30 12:09:08,976 starting
+2019-01-30 12:09:48,569 NEW TURN
+2019-01-30 12:09:48,569 DO TURN
+2019-01-30 12:09:48,571 Processing planet 2 that contains currently 100 ships. Available for invasion: 99 ships
+2019-01-30 12:09:48,571 Looking to invade planet 15 with 9 ships landed on it at distance 5 from planet and at growth rate 5. Opportunity: 8.8
+2019-01-30 12:09:48,571 Looking to invade planet 18 with 69 ships landed on it at distance 6 from planet and at growth rate 2. Opportunity: 0.221417069243
+2019-01-30 12:09:48,571 Looking to invade planet 21 with 35 ships landed on it at distance 7 from planet and at growth rate 5. Opportunity: 0.589040280835
+2019-01-30 12:09:48,571 Looking to invade planet 6 with 32 ships landed on it at distance 9 from planet and at growth rate 2. Opportunity: 0.0943072702332
+2019-01-30 12:09:48,571 Looking to invade planet 12 with 85 ships landed on it at distance 9 from planet and at growth rate 1. Opportunity: 0.0177519567498
+2019-01-30 12:09:48,571 Looking to invade planet 0 with 119 ships landed on it at distance 11 from planet and at growth rate 0. Opportunity: 0.0
+2019-01-30 12:09:48,571 Looking to invade planet 4 with 21 ships landed on it at distance 11 from planet and at growth rate 4. Opportunity: 0.128796823012
+2019-01-30 12:09:48,571 Looking to invade planet 7 with 60 ships landed on it at distance 11 from planet and at growth rate 5. Opportunity: 0.0563486100676
+2019-01-30 12:09:48,572 Looking to invade planet 9 with 74 ships landed on it at distance 14 from planet and at growth rate 5. Opportunity: 0.0174125083017
+2019-01-30 12:09:48,572 Looking to invade planet 13 with 72 ships landed on it at distance 14 from planet and at growth rate 3. Opportunity: 0.0107377134527
+2019-01-30 12:09:48,572 Looking to invade planet 20 with 41 ships landed on it at distance 14 from planet and at growth rate 1. Opportunity: 0.0062854908016
+2019-01-30 12:09:48,572 Looking to invade planet 19 with 41 ships landed on it at distance 15 from planet and at growth rate 1. Opportunity: 0.00476964769648
+2019-01-30 12:09:48,572 Looking to invade planet 3 with 21 ships landed on it at distance 17 from planet and at growth rate 4. Opportunity: 0.0225777263887
+2019-01-30 12:09:48,572 Looking to invade planet 10 with 74 ships landed on it at distance 18 from planet and at growth rate 5. Opportunity: 0.00637211285359
+2019-01-30 12:09:48,572 Looking to invade planet 17 with 69 ships landed on it at distance 18 from planet and at growth rate 2. Opportunity: 0.00273354406473
+2019-01-30 12:09:48,572 Looking to invade planet 14 with 72 ships landed on it at distance 19 from planet and at growth rate 3. Opportunity: 0.00316526116282
+2019-01-30 12:09:48,572 Looking to invade planet 8 with 60 ships landed on it at distance 20 from planet and at growth rate 5. Opportunity: 0.00515625
+2019-01-30 12:09:48,572 Looking to invade planet 11 with 85 ships landed on it at distance 20 from planet and at growth rate 1. Opportunity: 0.000727941176471
+2019-01-30 12:09:48,572 Looking to invade planet 16 with 9 ships landed on it at distance 21 from planet and at growth rate 5. Opportunity: 0.028280397571
+2019-01-30 12:09:48,572 Looking to invade planet 1 with 100 ships landed on it at distance 22 from planet and at growth rate 5. Opportunity: 5.03112589889e-05
+2019-01-30 12:09:48,572 Looking to invade planet 22 with 35 ships landed on it at distance 22 from planet and at growth rate 5. Opportunity: 0.00603735107867
+2019-01-30 12:09:48,572 Looking to invade planet 5 with 32 ships landed on it at distance 23 from planet and at growth rate 2. Opportunity: 0.00221107700444
+2019-01-30 12:09:48,572 Target of opportunity planet 15 with opportunity 8.8 at distance 5
+2019-01-30 12:09:48,572 Send 10 ships from planet id 2 to planet id 15 which currently has 9 ships landed on it
+2019-01-30 12:09:48,572 Target of opportunity planet 21 with opportunity 0.589040280835 at distance 7
+2019-01-30 12:09:48,572 Send 36 ships from planet id 2 to planet id 21 which currently has 35 ships landed on it
+2019-01-30 12:09:48,572 Target of opportunity planet 18 with opportunity 0.221417069243 at distance 6
+2019-01-30 12:09:48,572 Send 53 ships from planet id 2 to planet id 18 which currently has 69 ships landed on it
+2019-01-30 12:09:48,573 TURN FINISHED
