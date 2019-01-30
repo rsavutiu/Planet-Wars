@@ -30,18 +30,26 @@ def usage():
 def main():
     if len(sys.argv) != 3:
         usage()
-        return
+
+    # p1 = "python entries/radu/RaduBot.py"
+    # p2 = "java -jar example_bots/DualBot.jar"
+
     p1 = sys.argv[1]
-    p2 = sys.argv[2]
+    print "p1 ",p1
+    p2= sys.argv[2]
+    print "p2 ", p2
+
     p1wins = 0
     for g in range(1, 100):
         if runGame(p1,p2,'maps/map'+str(g)+'.txt') == 1:
+            print('won on maps/map' + str(g) + '.txt')
             p1wins += 1
         else:
             print('lost on maps/map'+str(g)+'.txt')
+        #endif
+    #endfor
+
     print('P1 wins ' + str(100*p1wins/100.0) + '%')
 
-main()
-
-    
-    
+if __name__=="__main__":
+    main()
