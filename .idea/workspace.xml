@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c64caad1-9333-49a0-854e-f7fa9a9a7780" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Runner.py" beforeDir="false" afterPath="$PROJECT_DIR$/Runner.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/entries/radu/RaduBot.py" beforeDir="false" afterPath="$PROJECT_DIR$/entries/radu/RaduBot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/entries/radu/Utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/entries/radu/Utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/entries/radu/game.log" beforeDir="false" afterPath="$PROJECT_DIR$/entries/radu/game.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/entries/radu/mybot.log" beforeDir="false" afterPath="$PROJECT_DIR$/entries/radu/mybot.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game.log" beforeDir="false" afterPath="$PROJECT_DIR$/game.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mybot.log" beforeDir="false" afterPath="$PROJECT_DIR$/mybot.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/status.log" beforeDir="false" afterPath="$PROJECT_DIR$/status.log" afterDir="false" />
-    </list>
+    <list default="true" id="c64caad1-9333-49a0-854e-f7fa9a9a7780" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,11 +52,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/entries/radu/Utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="241">
-              <caret line="73" column="42" lean-forward="true" selection-start-line="73" selection-start-column="42" selection-end-line="73" selection-end-column="42" />
+            <state relative-caret-position="-33">
+              <caret line="138" column="26" selection-start-line="138" selection-start-column="26" selection-end-line="138" selection-end-column="26" />
               <folding>
                 <element signature="e#0#33#0" expanded="true" />
               </folding>
@@ -83,11 +73,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/mybot.log">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="3" column="45" selection-start-line="3" selection-start-column="45" selection-end-line="3" selection-end-column="45" />
+            <state relative-caret-position="60">
+              <caret line="4" column="84" selection-start-line="4" selection-start-column="76" selection-end-line="4" selection-end-column="84" />
             </state>
           </provider>
         </entry>
@@ -490,13 +480,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mybot.log">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" column="45" selection-start-line="3" selection-start-column="45" selection-end-line="3" selection-end-column="45" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Library/Caches/PyCharmCE2018.3/python_stubs/-1247972723/math.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="257">
@@ -523,11 +506,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/entries/radu/Utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="241">
-          <caret line="73" column="42" lean-forward="true" selection-start-line="73" selection-start-column="42" selection-end-line="73" selection-end-column="42" />
+        <state relative-caret-position="-33">
+          <caret line="138" column="26" selection-start-line="138" selection-start-column="26" selection-end-line="138" selection-end-column="26" />
           <folding>
             <element signature="e#0#33#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mybot.log">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="4" column="84" selection-start-line="4" selection-start-column="76" selection-end-line="4" selection-end-column="84" />
         </state>
       </provider>
     </entry>
