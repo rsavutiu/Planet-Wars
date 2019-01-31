@@ -102,15 +102,9 @@ def invade_planets(my_planet, pw, total_invasion_ships_for_planet, own_center_x,
                         opportunity_target.NumShips(),
                         targets_of_opportunity[opportunity_target], distance_to_planet, necessary_ships_to_invade))
         if necessary_ships_to_invade > 0:
-            necessary_ships_to_invade += 3
-            if ((opportunity_target.Owner()==0 and total_invasion_ships_for_planet * 2 > necessary_ships_to_invade)\
-                    or (opportunity_target.Owner() == 1)\
-                        or (opportunity_target.Owner() == 2 and (total_invasion_ships_for_planet * 5) > necessary_ships_to_invade)):
-                sent_ships = min(total_invasion_ships_for_planet, necessary_ships_to_invade)
-                send(pw, my_planet, opportunity_target, sent_ships, distances)
-            else:
-                debug("Send cancelled. Owner of target: {0}".format(opportunity_target.Owner()))
-            #endif
+            necessary_ships_to_invade += 1
+            sent_ships = min(total_invasion_ships_for_planet, necessary_ships_to_invade)
+            send(pw, my_planet, opportunity_target, sent_ships, distances)
         # endif
 
         total_invasion_ships_for_planet -= sent_ships

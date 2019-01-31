@@ -5,6 +5,10 @@ from math import ceil
 from Log import debug
 from PlanetSim import PlanetSim
 import math
+import numpy as np
+import skfuzzy
+from skfuzzy import control
+
 
 
 def calculate_center_of_gravity(planets):
@@ -20,61 +24,79 @@ def calculate_center_of_gravity(planets):
 
 
 def get_available_invasion_ships(my_planet, pw):
-    invasion_ships = my_planet.NumShips() - 5
-    incoming_fleets = get_incoming_fleets(my_planet.PlanetID(), pw)
-    for incoming_fleet in incoming_fleets:
-        if incoming_fleet.Owner() == 2:
-            # enemy fleet!
-            invasion_ships -= incoming_fleet.NumShips()
-        else:
-            # friendly fleet!
-            invasion_ships += incoming_fleet.NumShips()
-        # endif
-    # endfor
-    invasion_ships = min(invasion_ships, my_planet.NumShips() - 5)
-    if invasion_ships < 0: invasion_ships = 0
+    invasion_ships = my_planet.NumShips() - 1
+    planet_ships = my_planet.NumShips()
+
+    turns = 0
+    while turns < 30:
+        fleets_coming_in = get_incoming_fleets_in_exacly_x_turns(my_planet.PlanetID(), turns, pw)
+        invading_enemy_ships = sum([invasion_fleet.NumShips() for invasion_fleet in fleets_coming_in if invasion_fleet.Owner() == 2])
+        invading_own_ships = sum([invasion_fleet.NumShips() for invasion_fleet in fleets_coming_in if invasion_fleet.Owner() == 1])
+        planet_ships = planet_ships + my_planet.GrowthRate() + invading_own_ships - invading_enemy_ships
+        invasion_ships = min(invasion_ships, planet_ships - 1)
+        turns += 1
+    #endwhile
+    if invasion_ships < 0:
+        invasion_ships = 0
+    #emdof
     return invasion_ships
 
 
-def get_necessary_invasion_ships(foreign_planet, distance_to_planet, pw):
-    if foreign_planet.Owner() == 1:
-        necessary_ships = 0 - foreign_planet.NumShips() - 1
-    else:
-        necessary_ships = foreign_planet.NumShips() + 1
-    # endif
+def get_necessary_invasion_ships (foreign_planet, distance_to_planet, pw):
+    turn_until_my_fleet_arrives = int(distance_to_planet)
+    planet_ships = foreign_planet.NumShips() + 1
+    planet_owner = foreign_planet.Owner()
 
-    if foreign_planet.Owner() == 2:
-        # in enemy hands. we're going to need a bigger wrench...
-        necessary_ships += (distance_to_planet + 3) * foreign_planet.GrowthRate()
-    elif foreign_planet.Owner() == 1:
-        # in our hands. we can count growth as unnecesarry relief force, assuming it won't get conquered soon
-        necessary_ships -= distance_to_planet * foreign_planet.GrowthRate()
-    # endif
+    while turn_until_my_fleet_arrives > 0:
+        fleets_coming_in = get_incoming_fleets_in_exacly_x_turns(foreign_planet.PlanetID(), turn_until_my_fleet_arrives, pw)
+        if len(fleets_coming_in) > 0:
+            invading_enemy_ships = sum([invasion_fleet.NumShips() for invasion_fleet in fleets_coming_in if invasion_fleet.Owner() == 2])
+            invading_own_ships = sum([invasion_fleet.NumShips() for invasion_fleet in fleets_coming_in if invasion_fleet.Owner() == 1])
+            # debug("turn {0} [invading enemy ships: {1}] [invading own ships: {2}]".format(
+            #     turn_until_my_fleet_arrives, invading_enemy_ships, invading_own_ships))
 
-    incoming_fleets = get_incoming_fleets(foreign_planet.PlanetID(), pw)
-    for incoming_fleet in incoming_fleets:
+            if planet_owner == 0:
+                if invading_enemy_ships > planet_ships and invading_enemy_ships > invading_own_ships:
+                    planet_owner = 2
+                    planet_ships = invading_enemy_ships - max(planet_ships, invading_own_ships)
+                elif planet_ships >= invading_enemy_ships and planet_ships >= invading_own_ships:
+                    planet_owner = 0
+                    planet_ships = planet_ships - max(invading_enemy_ships, invading_own_ships)
+                else:
+                    planet_owner = 1
+                    planet_ships = invading_own_ships - max(invading_enemy_ships, planet_ships)
+                #endif
+            elif planet_owner == 1:
+                return 0
+                # planet_ships = invading_enemy_ships - planet_ships - invading_own_ships
+                # if planet_ships > 0:
+                #     # change owner
+                #     planet_owner = 2
+                # else:
+                #     planet_ships = 0 - planet_ships
+                # #endif
+            elif planet_owner == 2:
+                planet_ships = invading_own_ships - planet_ships - invading_enemy_ships
+                if planet_ships > 0:
+                    #change owner
+                    planet_owner = 1
+                    return 0
+                else:
+                    planet_ships = 0 - planet_ships
+                #endif
+            #endif
+        # else:
+        #     debug("no fleets coming in at turn: {0}".format(turn_until_my_fleet_arrives))
+        # #endif
+        turn_until_my_fleet_arrives -= 1
+    #endwhile
 
-        if incoming_fleet.TurnsRemaining() < distance_to_planet:
-            if incoming_fleet.Owner() == 1:
-                # my invasion fleet!
-                necessary_ships -= incoming_fleet.NumShips()
-                # debug("my invasion fleet! necessary ships dropped to: {0}".format(necessary_ships))
-            else:
-                # enemy relief fleet!
-                necessary_ships += incoming_fleet.NumShips()
-                # debug("enemy invasion fleet! necessary ships raised to to: {0}".format(necessary_ships))
-            # endif
-        else:
-            pass
-            # debug("fleet needs {0} turns, ignoring".format(incoming_fleet.TurnsRemaining()))
-        #endif
-    # endfor
-
-    if necessary_ships < 0:
-        necessary_ships = 0
+    if planet_owner == 1:
+        return 0
     #endif
-
-    return necessary_ships
+    # debug("Get necessary invasion ships for planet at distance {0} with currently {1} ships. We need: {2}"
+    #       .format(distance_to_planet, foreign_planet.NumShips(), planet_ships))
+    return planet_ships
 
 
 def calculate_growth_opportunity(potential_target):
@@ -160,42 +182,43 @@ def calculate_opportunity_fuzzy_logic(available_ships_for_invasion, necessary_sh
                                       own_center_x, own_center_y, turn):
 
     number_of_ships_opportunity = calculate_number_of_ships_oppportunity(potential_target)
-    number_of_ships_weight = 3 + turn / 2000.0
+    number_of_ships_weight = 1.0 - turn / 200.0
 
     surplus_ships = available_ships_for_invasion - necessary_ships_for_invasion
-    # surplus_ships_opportunity = calculate_surplus_ships_opportunity(surplus_ships)
-    # surplus_ships_weight = 0.3 - turn/2000.0
+    surplus_ships_opportunity = calculate_surplus_ships_opportunity(surplus_ships)
+    surplus_ships_weight = 1.0
 
     growth_rate_opportunity = calculate_growth_opportunity(potential_target)
-    growth_rate_weight = 20 - turn / 1000.0
+    growth_rate_weight = 0.5 + (1.0 - turn / 200.0) / 2
 
     distance_to_planet_opportunity = calculate_distance_to_planet(distance_to_planet, potential_target, surplus_ships)
-    distance_to_planet_weight = 50 - turn/20.0
+    distance_to_planet_weight = 0.8 + (1 - turn / 200.0) * 0.2
 
+    owner_of_planet_opportunity = 1
     if potential_target.Owner() == 2:
         # theirs - they defend so it's less profitable to attack
-        owner_of_planet_opportunity = 0.1 + float(turn) / 400.0
+        owner_of_planet_opportunity = min(1.0, 0.3 + float(turn) / 200.0)
     elif potential_target.Owner() == 1:
         # mine
-        owner_of_planet_opportunity = 0.79
+        owner_of_planet_opportunity = 0.6
     elif potential_target.Owner() == 0:
         # neutral
         owner_of_planet_opportunity = 1
     # endif
-    owner_of_planet_weight = 10
+    owner_of_planet_weight = 1
 
     teritorry_center_of_gravity_opportunity = \
         calculate_center_of_gravity_opportunity(turn, potential_target, own_center_x, own_center_y)
-    teritorry_center_of_gravity_weight = 3 + turn / 800.0
+    teritorry_center_of_gravity_weight = 1 - (turn / 200.0) * 0.5
 
     opportunity = (number_of_ships_opportunity * number_of_ships_weight +
-                   # surplus_ships_opportunity * surplus_ships_weight +
+                   surplus_ships_opportunity * surplus_ships_weight +
                    growth_rate_opportunity * growth_rate_weight +
                    distance_to_planet_opportunity * distance_to_planet_weight +
                    owner_of_planet_opportunity * owner_of_planet_weight +
                    teritorry_center_of_gravity_opportunity * teritorry_center_of_gravity_weight) /\
                 (number_of_ships_weight +
-                 # surplus_ships_weight +
+                 surplus_ships_weight +
                  growth_rate_weight +
                  distance_to_planet_weight +
                  owner_of_planet_weight +
@@ -323,6 +346,14 @@ def get_incoming_fleets(planet_id, pw):
     return filter(lambda x: x.DestinationPlanet() == planet_id, pw.Fleets())
 
 
+def get_incoming_fleets_in_exacly_x_turns(planet_id, turns, pw):
+    ret = filter(lambda x: x.DestinationPlanet() == planet_id and x.TurnsRemaining() == turns, pw.Fleets())
+    # if len(ret) > 0:
+    #     debug("get incoming fleets for planet id {0} in {1} turns = {2} fleets".format(planet_id, turns, len(ret)))
+    # #endif
+    return ret
+
+
 def get_incoming_opponent_fleets(planet_id, pw):
     return filter(lambda x: x.DestinationPlanet() == planet_id and x.Owner() == 2, pw.Fleets())
 
@@ -344,6 +375,7 @@ def get_planet_type(target):
         target_type = " OWN!!!! "
     elif target.Owner() == 2:
         target_type = " enemy "
+    #endif
     return target_type
 
 
@@ -361,10 +393,10 @@ def send(pw, my_planet, target, available_invasion_ships, distances):
                         target.NumShips()))
     #endif
     pw.IssueOrderByIds(my_planet.PlanetID(), target.PlanetID(), available_invasion_ships)
-    pw._fleets.append(Fleet(1,  # Owner is ME
-                                       available_invasion_ships/10,  # Num ships
-                                       my_planet.PlanetID(),  # Source
-                                       target.PlanetID(),  # Destination
-                                       distances[my_planet.PlanetID(), target.PlanetID()],  # Total trip length
-                                       distances[my_planet.PlanetID(), target.PlanetID()]))  # Turns remaining)
+    # pw._fleets.append(Fleet(1,  # Owner is ME
+    #                                    available_invasion_ships/10,  # Num ships
+    #                                    my_planet.PlanetID(),  # Source
+    #                                    target.PlanetID(),  # Destination
+    #                                    distances[my_planet.PlanetID(), target.PlanetID()],  # Total trip length
+    #                                    distances[my_planet.PlanetID(), target.PlanetID()]))  # Turns remaining)
     my_planet.NumShips(new_num_ships=my_planet.NumShips() - available_invasion_ships)
