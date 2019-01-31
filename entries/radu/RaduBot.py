@@ -55,8 +55,12 @@ def DoTurn(pw, turn):
         foreign_center_x, foreign_center_y = calculate_center_of_gravity(foreign_planets)
         own_center_x, own_center_y = calculate_center_of_gravity(my_planets)
 
+        debug("I have {0} planets".format(len(my_planets)))
+        index = 0
         for my_planet in my_planets:
             total_invasion_ships_for_planet = get_available_invasion_ships(my_planet, pw)
+            debug("Planet nr. {0}".format(index))
+            index += 1
             if total_invasion_ships_for_planet >= 1:
                 debug(
                     "Planning invasions from planet {0} that contains currently {1} ships. Available for invasion: {2} ships"
@@ -79,29 +83,39 @@ def invade_planets(my_planet, pw, total_invasion_ships_for_planet, own_center_x,
 
         distance_to_planet = distances[my_planet.PlanetID()][nearestNeighbor.PlanetID()]
         necessary_ships_to_invade = get_necessary_invasion_ships(nearestNeighbor, distance_to_planet, pw)
-        opportunity = calculate_opportunity_fuzzy_logic(total_invasion_ships_for_planet,
-                                                        necessary_ships_to_invade, nearestNeighbor, distance_to_planet,
-                                                        own_center_x, own_center_y, turn)
-        targets_of_opportunity[nearestNeighbor] = opportunity
+        if (necessary_ships_to_invade > 0):
+            opportunity = calculate_opportunity_fuzzy_logic(total_invasion_ships_for_planet,
+                                                            necessary_ships_to_invade, nearestNeighbor, distance_to_planet,
+                                                            own_center_x, own_center_y, turn)
+            targets_of_opportunity[nearestNeighbor] = opportunity
+        #endif
     # endfor
 
     for opportunity_target in reversed(sorted(targets_of_opportunity, key=targets_of_opportunity.get)):
         distance_to_planet = distances[my_planet.PlanetID()][opportunity_target.PlanetID()]
-        debug(
-            "Target of opportunity {0} planet {1} currently contains {2} ships with opportunity {3} at distance {4}"
-            .format(get_planet_type(opportunity_target), opportunity_target.PlanetID(), opportunity_target.NumShips(),
-                    targets_of_opportunity[opportunity_target], distance_to_planet))
         sent_ships = 0
-
         necessary_ships_to_invade = get_necessary_invasion_ships(opportunity_target, distance_to_planet, pw)
+        debug(
+            "Target of opportunity {0} planet {1} currently contains {2} ships with "
+            "opportunity {3} at distance {4}. Necessary ships to take: {5}"
+                .format(get_planet_type(opportunity_target), opportunity_target.PlanetID(),
+                        opportunity_target.NumShips(),
+                        targets_of_opportunity[opportunity_target], distance_to_planet, necessary_ships_to_invade))
         if necessary_ships_to_invade > 0:
-            sent_ships = min(total_invasion_ships_for_planet, necessary_ships_to_invade + random.randint(0, 2))
-            send(pw, my_planet, opportunity_target, sent_ships, distances)
+            necessary_ships_to_invade += 3
+            if ((opportunity_target.Owner()==0 and total_invasion_ships_for_planet * 2 > necessary_ships_to_invade)\
+                    or (opportunity_target.Owner() == 1)\
+                        or (opportunity_target.Owner() == 2 and (total_invasion_ships_for_planet * 5) > necessary_ships_to_invade)):
+                sent_ships = min(total_invasion_ships_for_planet, necessary_ships_to_invade)
+                send(pw, my_planet, opportunity_target, sent_ships, distances)
+            else:
+                debug("Send cancelled. Owner of target: {0}".format(opportunity_target.Owner()))
+            #endif
         # endif
 
         total_invasion_ships_for_planet -= sent_ships
-        if total_invasion_ships_for_planet <= random.randint(turn/21, turn/8):
-            break
+        if total_invasion_ships_for_planet <= 4:
+            return
     # endfor
 
 
