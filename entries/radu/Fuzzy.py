@@ -1,8 +1,7 @@
 import numpy as np
-import skfuzzy
 import skfuzzy.control as ctrl
-import os
-
+import random
+import math
 
 """
 def automf(self, number=5, variable_type='quality', names=None,
@@ -55,68 +54,169 @@ def automf(self, number=5, variable_type='quality', names=None,
         create 3, 5, or 7 membership functions.
         """
 
+short_names=['nvb', 'nb', 'n', 'z', 'p', 'pb', 'pvb']
+
 #create antecedents
-game_time = ctrl.Antecedent(np.arange(0, 201, 1), 'game_time')
-game_time.automf(3, names=['early', 'mid', 'late'])
+turn = ctrl.Antecedent(np.arange(0, 201, 1), 'turn')
+turn.automf(3, names=['early', 'mid', 'late'])
 
-surplus_ships = ctrl.Antecedent(np.arange(-20, 30, 1), 'surplus_ships')
-surplus_ships.automf(7)
+ships = ctrl.Antecedent(np.arange(-21, 30, 1), 'ships')
+ships.automf(7)
 
-distance_to_target = ctrl.Antecedent(np.arange(0, 50, 1), 'distance_to_target')
-distance_to_target.automf(3, names=['negligible', 'tiny', 'small', 'medium', 'large', 'huge', 'unreachable'])
+dist = ctrl.Antecedent(np.arange(0, 400, 1), 'dist')
+dist.automf(7, names=short_names)
 
-attack_opportunity = ctrl.Consequent(np.arange(0, 1.1, 0.1), 'attack_opportunity')
-attack_opportunity.automf(7)
+atck = ctrl.Consequent(np.arange(0, 1.1, 0.1), 'attack_opportunity')
+atck.automf(7, names=short_names)
 
 rules = []
 #
-#
-# rules.append(ctrl.Rule(distance_to_target['tiny'], attack_opportunity['good']))
-# rules.append(ctrl.Rule(distance_to_target['negligible'], attack_opportunity['excellent']))
+#18 rules out of 147
+rules.append(ctrl.Rule(antecedent=((turn['early']   & dist['pvb']   & ships['nvb']) |
+                                   (turn['early']   & dist['pvb']   & ships['nb'])  |
+                                   (turn['early']   & dist['pb']    & ships['nb'])) |
+                                   (turn['early']   & dist['pb']    & ships['nvb']) |
 
-rules.append(ctrl.Rule(surplus_ships['dismal'], attack_opportunity['dismal']))
-rules.append(ctrl.Rule(surplus_ships['poor'], attack_opportunity['poor']))
+                                   (turn['early']   & dist['p']     & ships['nvb']) |
+                                   (turn['early']   & dist['p']     & ships['nb'])  |
+                                   (turn['early']   & dist['pb']    & ships['z'])   |
+                                   (turn['early']   & dist['pb']    & ships['z'])   |
 
-rules.append(ctrl.Rule((surplus_ships['poor'] & distance_to_target['huge']) |
-                       (game_time['early'] & (distance_to_target['large'] & surplus_ships['mediocre'])),
-                       attack_opportunity['poor']))
+                                   (turn['early']   & dist['z']     & ships['nvb']) |
+                                   (turn['early']   & dist['n']     & ships['nb'])  |
 
-rules.append(ctrl.Rule((surplus_ships['mediocre'] & distance_to_target['large']) |
-                       (game_time['early'] & (distance_to_target['medium'] & surplus_ships['average'])),
-                       attack_opportunity['mediocre']))
+                                   (turn['mid']     & dist['pvb']   & ships['nvb']) |
+                                   (turn['mid']     & dist['pvb']   & ships['nb'])  |
+                                   (turn['mid']     & dist['pb']    & ships['nb'])  |
+                                   (turn['mid']     & dist['pb']    & ships['nvb']) |
 
-rules.append(ctrl.Rule((surplus_ships['mediocre'] & distance_to_target['large']) |
-                       (game_time['early'] & (distance_to_target['medium'] & surplus_ships['average'])),
-                       attack_opportunity['mediocre']))
+                                   (turn['late']    & dist['pvb']   & ships['nvb']) |
+                                   (turn['late']    & dist['pvb']   & ships['nb'])  |
+                                   (turn['late']    & dist['pvb']   & ships['nb'])  |
+                                   (turn['late']    & dist['pb']    & ships['nvb'])),
+                       consequent=atck['nvb'], label='attack forbidden')
 
-rules.append(ctrl.Rule(surplus_ships['mediocre'] & (distance_to_target['small'] | distance_to_target['medium']), attack_opportunity['average']))
 
-rules.append(ctrl.Rule(((surplus_ships['decent'] | surplus_ships['average']) & (distance_to_target['medium'] | distance_to_target['large'])),
-                       attack_opportunity['average']))
+# + 8 = 26 rules out of 149
+rules.append(ctrl.Rule(antecedent=((turn['early'] & dist['z']  & ships['nvb']) |
+                                   (turn['early'] & dist['z']  & ships['nb'])  |
+                                   (turn['early'] & dist['pb'] & ships['z'])   |
+                                   (turn['early'] & dist['pb'] & ships['z'])   |
 
-rules.append(ctrl.Rule(((surplus_ships['mediocre'] | surplus_ships['average']) & (distance_to_target['small'] | distance_to_target['medium'])),
-                       attack_opportunity['average']))
+                                   (turn['late']  & dist['p']  & ships['nvb']) |
+                                   (turn['late']  & dist['p']  & ships['nb'])  |
+                                   (turn['late']  & dist['pb'] & ships['z'])   |
+                                   (turn['late']  & dist['pb'] & ships['z']))),
+                       consequent=atck['nb'], label='attack discouraged_no_ships_big_distance')
 
-rules.append(ctrl.Rule(((surplus_ships['decent'] | surplus_ships['average']) & (distance_to_target['small'] | distance_to_target['medium'])),
-                       attack_opportunity['good']))
+# + 12 = 38 rules
+rules.append(ctrl.Rule(antecedent=((turn['early'] & dist['nvb'] & ships['nvb']) |
+                                   (turn['early'] & dist['nvb'] & ships['nb'])  |
+                                   (turn['early'] & dist['nvb'] & ships['z'])   |
+                                   (turn['early'] & dist['nb'] & ships['z'])   |
 
-rules.append(ctrl.Rule(((surplus_ships['excellent'] | surplus_ships['good'] | surplus_ships['decent']) & distance_to_target['tiny']),
-                       attack_opportunity['excellent']))
+                                   (turn['mid'] & dist['nb'] & ships['nvb']) |
+                                   (turn['mid'] & dist['nb'] & ships['nb'])  |
+                                   (turn['mid'] & dist['nb'] & ships['z'])   |
+                                   (turn['mid'] & dist['nb'] & ships['z'])   |
 
-rules.append(ctrl.Rule(((surplus_ships['excellent'] | surplus_ships['good'] | surplus_ships['decent']) & distance_to_target['negligible']),
-                       attack_opportunity['excellent']))
+                                   (turn['late'] & dist['p'] & ships['nvb']) |
+                                   (turn['late'] & dist['p'] & ships['nb'])  |
+                                   (turn['late'] & dist['pb'] & ships['z'])  |
+                                   (turn['late'] & dist['pb'] & ships['z']))),
+                       consequent=atck['n'], label='attack unlikely_no_ships_close_distance')
+
+# + 12 = 50 rules
+rules.append(ctrl.Rule(antecedent=((turn['early'] & dist['nvb'] & ships['nvb']) |
+                                   (turn['early'] & dist['nvb'] & ships['nb'])  |
+                                   (turn['early'] & dist['nvb'] & ships['z'])   |
+                                   (turn['early'] & dist['nvb'] & ships['z'])   |
+
+                                   (turn['mid'] & dist['nb'] & ships['nvb']) |
+                                   (turn['mid'] & dist['nb'] & ships['nb'])  |
+                                   (turn['mid'] & dist['nb'] & ships['z'])   |
+                                   (turn['mid'] & dist['nb'] & ships['z'])   |
+
+                                   (turn['late'] & dist['p'] & ships['nvb']) |
+                                   (turn['late'] & dist['p'] & ships['nb'])  |
+                                   (turn['late'] & dist['pb'] & ships['z'])  |
+                                   (turn['late'] & dist['pb'] & ships['z']))),
+                       consequent=atck['n'], label='attack unlikely_no_ships_close_distance')
+
+
+
+
+# + 28 = 78 rules
+rules.append(ctrl.Rule(antecedent=((turn['early'] & dist['nvb'] & ships['pvb']) |
+                                   (turn['early'] & dist['nvb'] & ships['pb'])  |
+                                   (turn['early'] & dist['nvb'] & ships['p'])   |
+
+                                   (turn['mid']   & dist['nvb'] & ships['pvb']) |
+                                   (turn['mid']   & dist['nvb'] & ships['pb'])  |
+                                   (turn['mid']   & dist['nvb'] & ships['p'])   |
+
+                                   (turn['late']  & dist['nvb'] & ships['pvb']) |
+                                   (turn['late']  & dist['nvb'] & ships['pb'])  |
+                                   (turn['late']  & dist['nvb'] & ships['p'])   |
+                                   (turn['late']  & dist['nvb'] & ships['z'])
+
+                                   (turn['early'] & dist['nb'] & ships['pvb'])  |
+                                   (turn['early'] & dist['nb'] & ships['pb'])   |
+                                   (turn['early'] & dist['nb'] & ships['p'])    |
+
+                                   (turn['mid']   & dist['nb'] & ships['pvb'])  |
+                                   (turn['mid']   & dist['nb'] & ships['pb'])   |
+                                   (turn['mid']   & dist['nb'] & ships['p'])    |
+
+                                   (turn['late']  & dist['nb'] & ships['pvb']   |
+                                   (turn['late']  & dist['nb'] & ships['pb']    |
+                                   (turn['late']  & dist['nb'] & ships['p']     |
+
+                                   (turn['mid']  & dist['n'] & ships['pvb'])    |
+                                   (turn['mid']  & dist['n'] & ships['pb'])     |
+                                   (turn['mid']  & dist['n'] & ships['p'])      |
+
+                                   (turn['late']  & dist['n'] & ships['pvb'])   |
+                                   (turn['late']  & dist['n'] & ships['pb'])    |
+                                   (turn['late']  & dist['n'] & ships['p'])     |
+
+                                   (turn['late'] & dist['z'] & ships['pvb'])    |
+                                   (turn['late'] & dist['z'] & ships['b'])      |
+                                   (turn['late'] & dist['z'] & ships['z'])),
+                       consequent=atck['pvb'], label='attack likely_have_ships_close_distance')
+
+def calculate_opportunity(opportunity, game_time, distance, ships_surplus):
+    print game_time, distance, ships_surplus
+
+    if ships_surplus > 30:
+        ships_surplus = 30
+    elif ships_surplus < -20:
+        ships_surplus = -20
+    #endif
+
+    opportunity.input['game_time'] = game_time
+    opportunity.input['distance_to_target'] = distance
+    opportunity.input['surplus_ships'] = ships_surplus
+
+    opportunity.compute()
+
+    print "Calculated for [turn {:4}] [distance {:5}] [ships {:5}] -->"\
+        .format(game_time, distance, ships_surplus)
+
+    print atck.view(sim=opportunity)
 
 if __name__ == "__main__":
     opportunity_ctrl = ctrl.ControlSystem(rules)
     opportunity = ctrl.ControlSystemSimulation(opportunity_ctrl)
-    opportunity.input['game_time'] = 1
-    opportunity.input['distance_to_target'] = 49
-    opportunity.input['surplus_ships'] = 10
 
-    opportunity.compute()
-
-    print opportunity.output['attack_opportunity']
-    attack_opportunity.view(sim=opportunity)
+    SIM = 0
+    while SIM < 1000:
+        turn = random.randint(0, 10)
+        dist = random.random() * 200 * math.sqrt(2)
+        ships_surplus = random.randint(-100, 300)
+        calculate_opportunity(opportunity, turn, dist, ships_surplus)
+        SIM += 1
+    #endwhile
     # surplus_ships.view()
     # # total_ships_quantity.view()
     # # necessary_ships_quantity.view()
@@ -124,3 +224,4 @@ if __name__ == "__main__":
     # target_owner.view()
     # attack_opportunity.view()
     raw_input()
+#endif
