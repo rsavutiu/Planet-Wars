@@ -6,7 +6,6 @@ http://planetwars.aichallenge.org/profile.php?user_id=10290
 java -jar tools/PlayGame.jar maps/map1.txt 200 200 log.txt "python entries/2/MyBot.py" "java -jar example_bots/DualBot.jar" | java -jar tools/ShowGame.jar
 java -jar tools/PlayGame.jar maps/map1.txt 200 200 log.txt "python entries/2/MyBot.py" "python entries/radu/RaduBot.jar" | java -jar tools/ShowGame.jar
 
-java -jar tools/PlayGame.jar maps/map1.txt 200 200 log.txt "python MyBot.py" "java -jar example_bots/DualBot.jar" | java -jar tools/ShowGame.jar
 
 The files in this package are part of a starter package from the Google AI
 Challenge. The Google AI Challenge is an Artificial Intelligence programming

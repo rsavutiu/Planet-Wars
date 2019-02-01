@@ -1,6 +1,7 @@
 from Log import debug
 import math
-# from Fuzzy import fuzzify_hashtable
+import time
+from Fuzzy import fuzzify_hashtable
 
 
 def calculate_center_of_gravity(planets):
@@ -129,8 +130,9 @@ def calculate_opportunity_fuzzy_logic(available_ships_for_invasion, necessary_sh
                                       turn):
     opportunity = 0
     if necessary_ships_for_invasion > 0:
-        # fuzzy_result = fuzzify_hashtable(turn, distance_to_planet, available_ships_for_invasion - necessary_ships_for_invasion)
-        fuzzy_result = 0.5
+        #fuzzy_result = fuzzify_hashtable(turn, distance_to_planet, available_ships_for_invasion - necessary_ships_for_invasion)
+        # time.sleep(1)
+        fuzzy_result = 0
         delta_ships = available_ships_for_invasion - necessary_ships_for_invasion
         if turn < 20:
             if (distance_to_planet > 30 and delta_ships < 1):
@@ -139,7 +141,7 @@ def calculate_opportunity_fuzzy_logic(available_ships_for_invasion, necessary_sh
                 fuzzy_result = 0
             #endif
         #endif
-        fuzzy_weight = 2
+        fuzzy_weight = 3
 
         growth_rate_opportunity = calculate_growth_opportunity(potential_target)
         growth_rate_weight = 1 + (1.0 - turn / 200.0) / 2

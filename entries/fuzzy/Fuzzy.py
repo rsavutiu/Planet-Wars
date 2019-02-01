@@ -64,6 +64,19 @@ GAME_TIME_LIMIT = 201
 
 
 def fuzzify_hashtable(game_time, distance, ships_surplus):
+    if game_time < 0:
+        game_time = 0
+    elif game_time >= GAME_TIME_LIMIT:
+        game_time = GAME_TIME_LIMIT - 1
+
+    if distance >= DISTANCE_MAX_LIMIT:
+        distance = DISTANCE_MAX_LIMIT - 1
+
+    if ships_surplus <= SHIPS_MIN_LIMIT:
+        ships_surplus = SHIPS_MIN_LIMIT + 1
+    elif ships_surplus >= SHIPS_MAX_LIMIT:
+        ships_surplus = SHIPS_MAX_LIMIT - 1
+
     return loaded_dict((game_time, distance, ships_surplus))
 
 

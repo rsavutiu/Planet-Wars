@@ -153,6 +153,7 @@ def DoTurn(pw):
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         debug(str(exc_type) + str(fname) + str(exc_tb.tb_lineno))
         debug(str(e) + str(e.message))
+        raise e
 
 
 def main():
