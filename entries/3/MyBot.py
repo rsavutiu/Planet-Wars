@@ -12,16 +12,17 @@
 from PlanetWars import PlanetWars
 from PlanetWars import Planet
 from math import ceil
-from Log import debug, game_log
-from PlanetSim import PlanetSim
-import math
-import random
-import operator
-from Utils import *
+from Log import debug
+import os
 import sys
+from Utils import *
 
 distances = {}
 nearestNeighbors = {}
+
+distances = {}
+nearestNeighbors = {}
+turn = 0
 
 
 def ComputePlanetDistances(pw):
@@ -43,43 +44,7 @@ def ComputePlanetDistances(pw):
     # endfor
 
 
-def DoTurn(pw, turn):
-    try:
-        debug("DO TURN {0}".format(turn))
-        if distances == {}:
-            ComputePlanetDistances(pw)
-        # endif
-        foreign_planets = get_foreign_planets(pw)
-        enemy_planets = get_enemy_planets(pw)
-        my_planets = get_my_planets(pw)
-        hardness = 0
-        foreign_center_x, foreign_center_y = calculate_center_of_gravity(foreign_planets)
-        own_center_x, own_center_y = calculate_center_of_gravity(my_planets)
-
-        debug("I have {0} planets".format(len(my_planets)))
-        index = 0
-        for my_planet in my_planets:
-            total_invasion_ships_for_planet = get_available_invasion_ships(my_planet, pw)
-            debug("Planet nr. {0}".format(index))
-            index += 1
-            if total_invasion_ships_for_planet >= 1:
-                debug(
-                    "Planning invasions from planet {0} that contains currently {1} ships. Available for invasion: {2} ships"
-                    .format(my_planet.PlanetID(), my_planet.NumShips(), total_invasion_ships_for_planet))
-                # invade_planets(my_planet, pw, total_invasion_ships_for_planet, own_center_x, own_center_y, turn)
-            else:
-                debug("Planet {0} with {1} ships cannot attack, it will be overrun soon...".format(my_planet.PlanetID(),
-                                                                                                   my_planet.NumShips()))
-            # endif
-        # endfor
-    except Exception, e:
-        debug(str(e) + str(e.message))
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        debug(exc_type, fname, exc_tb.tb_lineno)
-
-
-def invade_planets(my_planet, pw, total_invasion_ships_for_planet, own_center_x, own_center_y, turn):
+def invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn):
     targets_of_opportunity = {}
 
     for nearestNeighborIDs in nearestNeighbors[my_planet.PlanetID()]:
@@ -89,17 +54,24 @@ def invade_planets(my_planet, pw, total_invasion_ships_for_planet, own_center_x,
         necessary_ships_to_invade = get_necessary_invasion_ships(nearestNeighbor, distance_to_planet, pw)
         if (necessary_ships_to_invade > 0):
             opportunity = calculate_opportunity_fuzzy_logic(total_invasion_ships_for_planet,
-                                                            necessary_ships_to_invade, nearestNeighbor, distance_to_planet,
-                                                            own_center_x, own_center_y, turn)
+                                                            necessary_ships_to_invade, nearestNeighbor,
+                                                            distance_to_planet, turn)
             targets_of_opportunity[nearestNeighbor] = opportunity
-        #endif
+        # endif
     # endfor
 
     opportunity_targets = reversed(sorted(targets_of_opportunity, key=targets_of_opportunity.get))
-    for opportunity_target in opportunity_targets[:2]:
+
+    for opportunity_target in opportunity_targets:
+
+        if targets_of_opportunity[opportunity_target] < 0.3:
+            debug("better wait opportunity is: {0}".format(targets_of_opportunity[opportunity_target]))
+            return
+
         distance_to_planet = distances[my_planet.PlanetID()][opportunity_target.PlanetID()]
         sent_ships = 0
-        necessary_ships_to_invade = get_necessary_invasion_ships(opportunity_target, distance_to_planet, pw)
+        necessary_ships_to_invade = \
+            get_necessary_invasion_ships(opportunity_target, distance_to_planet, pw)
         debug(
             "Target of opportunity {0} planet {1} currently contains {2} ships with "
             "opportunity {3} at distance {4}. Necessary ships to take: {5}"
@@ -114,21 +86,84 @@ def invade_planets(my_planet, pw, total_invasion_ships_for_planet, own_center_x,
 
         total_invasion_ships_for_planet -= sent_ships
         if total_invasion_ships_for_planet <= 4:
-            break
+            debug("finished invasion ships {0}".format(total_invasion_ships_for_planet))
+            return
+        #endif
     # endfor
+
+    debug("end do turn")
+
+
+def DoTurn(pw):
+    myPlanets = pw.MyPlanets()
+    enemyPlanets = pw.EnemyPlanets()
+    # neutralPlanets = pw.NeutralPlanets()
+    # myFleets = pw.MyFleets()
+    # enemyFleets = pw.EnemyFleets()
+    enemySize = 0
+    mySize = 0
+    global turn
+
+    for planet in myPlanets:
+        mySize += planet.NumShips()
+    # endfor
+
+    for planet in enemyPlanets:
+        enemySize += planet.NumShips()
+    # endfor
+
+    if (enemySize <= 0) or (mySize <= 0):
+        winRatio = 0
+    else:
+        winRatio = float(mySize) / enemySize
+    # endif
+    debug("WIN Ratio: " + str(winRatio))
+
+    try:
+        debug("DO TURN {0}".format(turn))
+        if len(distances) == 0:
+            ComputePlanetDistances(pw)
+        # endif
+        foreign_planets = get_foreign_planets(pw)
+        enemy_planets = get_enemy_planets(pw)
+        my_planets = get_my_planets(pw)
+        hardness = 0
+        # foreign_center_x, foreign_center_y = calculate_center_of_gravity(foreign_planets)
+        # own_center_x, own_center_y = calculate_center_of_gravity(my_planets)
+
+        debug("I have {0} planets".format(len(my_planets)))
+        index = 0
+        for my_planet in my_planets:
+            total_invasion_ships_for_planet = get_available_invasion_ships(my_planet, pw)
+            debug("Planet nr. {0}".format(index))
+            index += 1
+            if total_invasion_ships_for_planet >= 1:
+                debug("Planning invasions from planet {0} that contains currently {1} ships. "
+                      "Available for invasion: {2} ships"
+                      .format(my_planet.PlanetID(), my_planet.NumShips(), total_invasion_ships_for_planet))
+                invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn)
+            else:
+                debug("Planet {0} with {1} ships cannot attack, it will be overrun soon...".format(my_planet.PlanetID(),
+                                                                                                   my_planet.NumShips()))
+            # endif
+        # endfor
+        turn += 1
+    except Exception, e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        debug(str(exc_type) + str(fname) + str(exc_tb.tb_lineno))
+        debug(str(e) + str(e.message))
 
 
 def main():
     debug("starting")
     map_data = ''
-    turn_number = 0
     while (True):
         current_line = raw_input()
         if len(current_line) >= 2 and current_line.startswith("go"):
             pw = PlanetWars(map_data)
-            debug("NEW TURN {0}".format(turn_number))
-            turn_number += 1
-            DoTurn(pw, turn_number)
+            debug("NEW TURN")
+            DoTurn(pw)
             pw.FinishTurn()
             debug("TURN FINISHED")
             map_data = ''

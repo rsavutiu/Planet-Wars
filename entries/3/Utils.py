@@ -1,15 +1,6 @@
-from PlanetWars import PlanetWars
-from PlanetWars import Planet
-from PlanetWars import Fleet
-from math import ceil
 from Log import debug
-from PlanetSim import PlanetSim
 import math
-import numpy as np
-import skfuzzy
-from skfuzzy import control
-
-# from Fuzzy import fuzzify
+# from Fuzzy import fuzzify_hashtable
 
 
 def calculate_center_of_gravity(planets):
@@ -135,11 +126,19 @@ def calculate_growth_opportunity(potential_target):
 
 def calculate_opportunity_fuzzy_logic(available_ships_for_invasion, necessary_ships_for_invasion,
                                       potential_target, distance_to_planet,
-                                      own_center_x, own_center_y, turn):
+                                      turn):
     opportunity = 0
     if necessary_ships_for_invasion > 0:
-        # fuzzy_result = fuzzify(turn, distance_to_planet, available_ships_for_invasion - necessary_ships_for_invasion)
-        fuzzy_result = 0.3
+        # fuzzy_result = fuzzify_hashtable(turn, distance_to_planet, available_ships_for_invasion - necessary_ships_for_invasion)
+        fuzzy_result = 0.5
+        delta_ships = available_ships_for_invasion - necessary_ships_for_invasion
+        if turn < 20:
+            if (distance_to_planet > 30 and delta_ships < 1):
+                fuzzy_result = 0
+            else:
+                fuzzy_result = 0
+            #endif
+        #endif
         fuzzy_weight = 2
 
         growth_rate_opportunity = calculate_growth_opportunity(potential_target)
@@ -158,9 +157,9 @@ def calculate_opportunity_fuzzy_logic(available_ships_for_invasion, necessary_sh
         # endif
         owner_of_planet_weight = 1
 
-        teritorry_center_of_gravity_opportunity = \
-            calculate_center_of_gravity_opportunity(turn, potential_target, own_center_x, own_center_y)
-        teritorry_center_of_gravity_weight = 1 - (turn / 200.0) * 0.5
+        # teritorry_center_of_gravity_opportunity = \
+        #     calculate_center_of_gravity_opportunity(turn, potential_target, own_center_x, own_center_y)
+        # teritorry_center_of_gravity_weight = 1 - (turn / 200.0) * 0.5
 
         opportunity = ((fuzzy_result * fuzzy_weight) + (growth_rate_opportunity * growth_rate_weight) + (owner_of_planet_opportunity * owner_of_planet_weight)) /\
                        (fuzzy_weight + growth_rate_weight + owner_of_planet_weight)
