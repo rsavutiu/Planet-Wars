@@ -7,7 +7,8 @@ from Log import game_log
 
 class Fleet:
   def __init__(self, owner, num_ships, source_planet, destination_planet, \
-   total_trip_length, turns_remaining):
+    total_trip_length, turns_remaining):
+
     self._owner = owner
     self._num_ships = num_ships
     self._source_planet = source_planet

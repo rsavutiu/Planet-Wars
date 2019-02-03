@@ -3,6 +3,8 @@ import os
 import sys
 from Log import debug
 import pickledict
+
+from Utils import SHIPS_MAX_LIMIT, SHIPS_MIN_LIMIT, DISTANCE_MAX_LIMIT, GAME_TIME_LIMIT
 """
 def automf(self, number=5, variable_type='quality', names=None,
            invert=False):
@@ -57,12 +59,8 @@ def automf(self, number=5, variable_type='quality', names=None,
 HASH_TABLE_FUZZY_LOGIC = 'fuzzy_logic_results.npy'
 PICKLED_DICT = "pickledict.py"
 loaded_dict = None
-SHIPS_MIN_LIMIT = -1
-SHIPS_MAX_LIMIT = 1
 
-DISTANCE_MAX_LIMIT = 12
 
-GAME_TIME_LIMIT = 40
 
 def fuzzify_hashtable(game_time, distance, ships_surplus):
     if game_time < 0:
@@ -87,7 +85,7 @@ def fuzzify(game_time, distance, ships_surplus):
 
     if ships_surplus > SHIPS_MAX_LIMIT:
         ships_surplus = SHIPS_MAX_LIMIT
-    elif ships_surplus < SHIPS_MIN_LIMIT:
+    elif ships_surplus <= SHIPS_MIN_LIMIT:
         ships_surplus = SHIPS_MIN_LIMIT
     #endif
 
@@ -109,11 +107,14 @@ def fuzzify(game_time, distance, ships_surplus):
 
     opportunity.compute()
     ret = opportunity.output['atck']
-    # debug("Calculated for [time {:4}] [distance {:5}] [ships {:5}] --> {:10}".format(game_time, distance, ships_surplus, ret))
+    # debug("Calculated for [time {:4}] [distance {:5}] [ships {:5}] --> {:10}"
+    # .format(game_time, distance, ships_surplus, ret))
     return ret
 
 
 if __name__ == "__main__":
+    import skfuzzy.control as ctrl
+    import numpy as np
     start_timestamp = time.time()
     lines = []
     lines.append("a = {}")
@@ -125,7 +126,7 @@ if __name__ == "__main__":
         tttime = ctrl.Antecedent(np.arange(0, GAME_TIME_LIMIT, 1), 'tttime')
         tttime.automf(3, names=['early', 'mid', 'late'])
 
-        ships = ctrl.Antecedent(np.arange(SHIPS_MIN_LIMIT - 1, SHIPS_MAX_LIMIT, 1), 'ships')
+        ships = ctrl.Antecedent(np.arange(SHIPS_MIN_LIMIT, SHIPS_MAX_LIMIT, 1), 'ships')
         ships.automf(3, names=short_names)
 
         dist = ctrl.Antecedent(np.arange(0, DISTANCE_MAX_LIMIT, 1), 'dist')
@@ -181,16 +182,15 @@ if __name__ == "__main__":
         opportunity_ctrl = ctrl.ControlSystem(rules)
         opportunity = ctrl.ControlSystemSimulation(opportunity_ctrl)
 
-        for game_time_index in range(1, GAME_TIME_LIMIT-1):
+        for game_time_index in range(1, GAME_TIME_LIMIT):
             for distance_index in range(0, DISTANCE_MAX_LIMIT):
-                for ships_surplus_index in range(SHIPS_MIN_LIMIT-1, SHIPS_MAX_LIMIT):
+                for ships_surplus_index in range(SHIPS_MIN_LIMIT, SHIPS_MAX_LIMIT+1):
                     try:
                         result = fuzzify(game_time_index, distance_index, ships_surplus_index)
                         fuzzy_dictionary_results[(game_time_index, distance_index, ships_surplus_index)] = result
-                        line = "a[{0}] = [{1}]\n".format((game_time_index, distance_index, ships_surplus_index), result)
+                        line = "a[{0}] = {1}\n".format((game_time_index, distance_index, ships_surplus_index), result)
                         # print line
                         lines.append(line)
-
                     except Exception, e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]

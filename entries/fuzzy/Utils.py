@@ -129,8 +129,9 @@ def calculate_opportunity_fuzzy_logic(available_ships_for_invasion, necessary_sh
                                       turn):
     opportunity = 0
     if necessary_ships_for_invasion > 0:
-        # fuzzy_result = fuzzify_hashtable(turn, distance_to_planet, available_ships_for_invasion - necessary_ships_for_invasion)
-        fuzzy_result = 0.5
+        fuzzy_result = fuzzify_hashtable(
+            turn, distance_to_planet, available_ships_for_invasion - necessary_ships_for_invasion)
+        #fuzzy_result = 0.5
         delta_ships = available_ships_for_invasion - necessary_ships_for_invasion
         if turn < 20:
             if (distance_to_planet > 30 and delta_ships < 1):

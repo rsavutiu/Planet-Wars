@@ -1,7 +1,36 @@
 from Log import debug
 import math
 import time
-from Fuzzy import fuzzify_hashtable
+import pickledict
+
+
+SHIPS_MIN_LIMIT = -2
+SHIPS_MAX_LIMIT = 2
+DISTANCE_MAX_LIMIT = 20
+GAME_TIME_LIMIT = 40
+
+
+def fuzzify_hashtable(game_time, distance, ships_surplus):
+    game_time += 1
+    distance = int(distance)
+    if game_time < 0:
+        game_time = 0
+    elif game_time >= GAME_TIME_LIMIT:
+        game_time = GAME_TIME_LIMIT - 1
+    #endif
+
+    if distance >= DISTANCE_MAX_LIMIT:
+        distance = int(DISTANCE_MAX_LIMIT - 1)
+    # endif
+
+    if ships_surplus < SHIPS_MIN_LIMIT:
+        ships_surplus = SHIPS_MIN_LIMIT
+    elif ships_surplus > SHIPS_MAX_LIMIT:
+        ships_surplus = SHIPS_MAX_LIMIT
+    #endif
+    if not pickledict.a.has_key((game_time, distance, ships_surplus)):
+        return 0
+    return pickledict.a[(game_time, distance, ships_surplus)]
 
 
 def calculate_center_of_gravity(planets):
@@ -10,32 +39,53 @@ def calculate_center_of_gravity(planets):
     for planet in planets:
         x += planet.X()
         y += planet.Y()
-    # endfor
+    #endfor
     x = x / len(planets)
     y = y / len(planets)
     return x, y
 
+def get_ships_on_planet_on_turn_x(my_planet, turn, pw):
+    ships = my_planet.NumShips() + my_planet.GrowthRate() * turn
+    all_fleets = filter(lambda x: x.DestinationPlanet() == my_planet.PlanetID() and
+                                  x.TurnsRemaining() <= turn, pw.Fleets())
+    for fleet in all_fleets:
+        if fleet.Owner() == 1:
+            ships += fleet.NumShips()
+        else:
+            ships -= fleet.NumShips()
+        #endif
+    #endfor
+    return ships
+
+
 
 def get_available_invasion_ships(my_planet, pw):
-    invasion_ships = my_planet.NumShips() - 1
-    planet_ships = my_planet.NumShips()
+    incoming_fleet_set_of_turns = set([fleet.TurnsRemaining()
+                                    for fleet in get_incoming_opponent_fleets(my_planet.PlanetID(), pw)])
+    invasion_ships = my_planet.NumShips()
 
-    turns = 0
-    while turns < 30:
-        fleets_coming_in = get_incoming_fleets_in_exacly_x_turns(my_planet.PlanetID(), turns, pw)
-        invading_enemy_ships = sum([invasion_fleet.NumShips() for invasion_fleet in fleets_coming_in if invasion_fleet.Owner() == 2])
-        invading_own_ships = sum([invasion_fleet.NumShips() for invasion_fleet in fleets_coming_in if invasion_fleet.Owner() == 1])
-        planet_ships = planet_ships + my_planet.GrowthRate() + invading_own_ships - invading_enemy_ships
-        invasion_ships = min(invasion_ships, planet_ships - 1)
-        turns += 1
-    #endwhile
+    for turn in incoming_fleet_set_of_turns:
+        if turn > 0:
+            ships_here_on_turn_x = get_ships_on_planet_on_turn_x(my_planet, turn, pw)
+            if ships_here_on_turn_x < 0:
+                return 0
+            elif invasion_ships > ships_here_on_turn_x:
+                invasion_ships = ships_here_on_turn_x
+    #endfor
+
     if invasion_ships < 0:
         invasion_ships = 0
-    #emdof
+    #endif
+
+    if invasion_ships > my_planet.NumShips() :
+        invasion_ships = my_planet.NumShips()
+    #endif
+
+    debug("invade with max {0} out of {1}".format(invasion_ships, my_planet.NumShips()))
     return invasion_ships
 
 
-def get_necessary_invasion_ships (foreign_planet, distance_to_planet, pw):
+def get_necessary_invasion_ships(foreign_planet, distance_to_planet, pw):
     turn_until_my_fleet_arrives = int(distance_to_planet)
     planet_ships = foreign_planet.NumShips() + 1
     planet_owner = foreign_planet.Owner()
@@ -47,7 +97,6 @@ def get_necessary_invasion_ships (foreign_planet, distance_to_planet, pw):
             invading_own_ships = sum([invasion_fleet.NumShips() for invasion_fleet in fleets_coming_in if invasion_fleet.Owner() == 1])
             # debug("turn {0} [invading enemy ships: {1}] [invading own ships: {2}]".format(
             #     turn_until_my_fleet_arrives, invading_enemy_ships, invading_own_ships))
-
             if planet_owner == 0:
                 if invading_enemy_ships > planet_ships and invading_enemy_ships > invading_own_ships:
                     planet_owner = 2
@@ -78,14 +127,11 @@ def get_necessary_invasion_ships (foreign_planet, distance_to_planet, pw):
                     planet_ships = 0 - planet_ships
                 #endif
             #endif
-        # else:
-        #     debug("no fleets coming in at turn: {0}".format(turn_until_my_fleet_arrives))
-        # #endif
+        #else:
+        #   debug("no fleets coming in at turn: {0}".format(turn_until_my_fleet_arrives))
+        ##endif
         turn_until_my_fleet_arrives -= 1
     #endwhile
-
-    if planet_owner == 1:
-        return 0
     #endif
     # debug("Get necessary invasion ships for planet at distance {0} with currently {1} ships. We need: {2}"
     #       .format(distance_to_planet, foreign_planet.NumShips(), planet_ships))
@@ -125,48 +171,43 @@ def calculate_growth_opportunity(potential_target):
     return opportunity
 
 
+def get_weighted_distance_to_planet(max_distance, distance):
+    return int((((max_distance-distance) * 5.0) / max_distance) - 2)
+
+
 def calculate_opportunity_fuzzy_logic(available_ships_for_invasion, necessary_ships_for_invasion,
-                                      potential_target, distance_to_planet,
-                                      turn):
+                                      potential_target, distance_to_planet, turn, max_distance):
     opportunity = 0
     if necessary_ships_for_invasion > 0:
-        #fuzzy_result = fuzzify_hashtable(turn, distance_to_planet, available_ships_for_invasion - necessary_ships_for_invasion)
-        # time.sleep(1)
-        fuzzy_result = 0
+        fuzzy_result = fuzzify_hashtable(
+            turn, get_weighted_distance_to_planet(max_distance, distance_to_planet),
+                available_ships_for_invasion - necessary_ships_for_invasion)
+
+        fuzzy_result *= (1 + float(min(potential_target.GrowthRate(), 15)) / 15.0) / 2
+
+        #debug("fuzzy result: {0}".format(fuzzy_result))
         delta_ships = available_ships_for_invasion - necessary_ships_for_invasion
-        if turn < 20:
-            if (distance_to_planet > 30 and delta_ships < 1):
+        if turn < 30:
+            if distance_to_planet > 50 and delta_ships < -20:
                 fuzzy_result = 0
-            else:
-                fuzzy_result = 0
+                return fuzzy_result
             #endif
         #endif
-        fuzzy_weight = 3
 
-        growth_rate_opportunity = calculate_growth_opportunity(potential_target)
-        growth_rate_weight = 1 + (1.0 - turn / 200.0) / 2
+        if necessary_ships_for_invasion > 50:
+            fuzzy_result *= 0.5
+        elif necessary_ships_for_invasion > 35:
+            fuzzy_result *= 0.6
+        elif necessary_ships_for_invasion >= 15:
+            fuzzy_result *= 0.75
+        else:
+            pass
+        #endif
 
-        owner_of_planet_opportunity = 1
-        if potential_target.Owner() == 2:
-            # theirs - they defend so it's less profitable to attack
-            owner_of_planet_opportunity = min(1.0, 0.5 + (float(turn) / 200.0)/2)
-        elif potential_target.Owner() == 1:
-            # mine
-            owner_of_planet_opportunity = 0.6
-        elif potential_target.Owner() == 0:
-            # neutral
-            owner_of_planet_opportunity = 1
-        # endif
-        owner_of_planet_weight = 1
+        fuzzy_result *= (max_distance - distance_to_planet) / max_distance
 
-        # teritorry_center_of_gravity_opportunity = \
-        #     calculate_center_of_gravity_opportunity(turn, potential_target, own_center_x, own_center_y)
-        # teritorry_center_of_gravity_weight = 1 - (turn / 200.0) * 0.5
-
-        opportunity = ((fuzzy_result * fuzzy_weight) + (growth_rate_opportunity * growth_rate_weight) + (owner_of_planet_opportunity * owner_of_planet_weight)) /\
-                       (fuzzy_weight + growth_rate_weight + owner_of_planet_weight)
     #endif
-    return opportunity
+    return fuzzy_result
 
 
 def calculate_center_of_gravity_opportunity(turn, potential_target, own_center_x, own_center_y):
@@ -285,3 +326,12 @@ def send(pw, my_planet, target, available_invasion_ships, distances):
     #                                    distances[my_planet.PlanetID(), target.PlanetID()],  # Total trip length
     #                                    distances[my_planet.PlanetID(), target.PlanetID()]))  # Turns remaining)
     my_planet.NumShips(new_num_ships=my_planet.NumShips() - available_invasion_ships)
+
+
+if __name__=="__main__":
+    from PlanetWars import Planet
+    #calculate_opportunity_fuzzy_logic(available_ships_for_invasion, necessary_ships_for_invasion,
+    #                                      potential_target, distance_to_planet, turn, max_distance)
+    planet = Planet(1, 2, 4, 6, 1, 1)
+    print calculate_opportunity_fuzzy_logic(available_ships_for_invasion=50, necessary_ships_for_invasion=4,
+                                          potential_target=planet, distance_to_planet=100, turn=50, max_distance=100)

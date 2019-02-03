@@ -108,7 +108,7 @@ def invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn):
 
         distance_to_planet = distances[my_planet.PlanetID()][nearestNeighbor.PlanetID()]
         necessary_ships_to_invade = get_necessary_invasion_ships(nearestNeighbor, distance_to_planet, pw)
-        if (necessary_ships_to_invade > 0):
+        if necessary_ships_to_invade > 0:
             opportunity = calculate_opportunity_fuzzy_logic(total_invasion_ships_for_planet,
                                                             necessary_ships_to_invade, nearestNeighbor,
                                                             distance_to_planet, turn)
