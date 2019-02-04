@@ -9,7 +9,7 @@ def runGame(player1, player2, map):
     status = open(statusFileName, 'w')
     game = open(gameFileName, 'w')
     p = subprocess.Popen(['java', '-jar', 'tools/PlayGame.jar', map, \
-                          '200', '200', 'log.txt', \
+                          '1000', '1000', 'log.txt', \
                           player1, player2], stderr=status, stdout=game)
     p.wait()
     game.close()

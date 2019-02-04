@@ -27,7 +27,7 @@ universe_max_space = None
 turn = 0
 dists = []
 actual_distances = []
-ATTACK_LIMIT = 3
+ATTACK_LIMIT = 5
 
 
 def compute_planet_distances(pw):

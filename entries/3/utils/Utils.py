@@ -7,7 +7,8 @@ import CenterOfGravity
 SHIPS_MIN_LIMIT = -2
 SHIPS_MAX_LIMIT = 2
 DISTANCE_MAX_LIMIT = 20
-GAME_TIME_LIMIT = 40
+GAME_SPARSE_TIME_LIMIT = 40
+TOTAL_GAME_TIME = 200
 
 
 def fuzzify_hashtable(game_time, distance, ships_surplus):
@@ -15,8 +16,8 @@ def fuzzify_hashtable(game_time, distance, ships_surplus):
     distance = int(distance)
     if game_time < 0:
         game_time = 0
-    elif game_time >= GAME_TIME_LIMIT:
-        game_time = GAME_TIME_LIMIT - 1
+    elif game_time >= GAME_SPARSE_TIME_LIMIT:
+        game_time = GAME_SPARSE_TIME_LIMIT - 1
     #endif
 
     if distance >= DISTANCE_MAX_LIMIT:
@@ -74,22 +75,12 @@ def calculate_opportunity_fuzzy_logic(available_ships_for_invasion, necessary_sh
     opportunity = 0
     if necessary_ships_for_invasion > 0:
         fuzzy_result = fuzzify_hashtable(
-            turn, CenterOfGravity.get_weighted_distance_to_planet(max_distance, distance_to_planet),
+            turn * GAME_SPARSE_TIME_LIMIT / TOTAL_GAME_TIME, CenterOfGravity.get_weighted_distance_to_planet(max_distance, distance_to_planet),
                 available_ships_for_invasion - necessary_ships_for_invasion)
 
-        fuzzy_result *= (1 + float(min(potential_target.GrowthRate(), 14)) / 15.0)
+        fuzzy_result *= (6 + float(min(potential_target.GrowthRate(), 14)) / 20.0)
         #debug("fuzzy result: {0}".format(fuzzy_result))
-
-        if necessary_ships_for_invasion > 50:
-            fuzzy_result *= 0.5
-        elif necessary_ships_for_invasion > 35:
-            fuzzy_result *= 0.6
-        elif necessary_ships_for_invasion >= 15:
-            fuzzy_result *= 0.75
-        else:
-            pass
-        #endif
-
+        fuzzy_result *= (0.9 + max(100 - necessary_ships_for_invasion, 0) / 1000.0)
         fuzzy_result *= (max_distance - distance_to_planet) / max_distance
 
     #endif
