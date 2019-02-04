@@ -57,7 +57,7 @@ def automf(self, number=5, variable_type='quality', names=None,
         """
 
 HASH_TABLE_FUZZY_LOGIC = 'fuzzy_logic_results.npy'
-PICKLED_DICT = "pickledict.py"
+PICKLED_DICT = "fuzzy_granular_1_results_dict.py"
 loaded_dict = None
 
 

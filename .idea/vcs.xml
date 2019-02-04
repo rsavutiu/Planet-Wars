@@ -2,5 +2,10 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/entries/3/fcl-for-scikit-fuzzy" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/entries/3/fcl_for_scikit_fuzzy" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/entries/3/fuzzy_logic/fcl-for-scikit-fuzzy" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/entries/fcl-for-scikit-fuzzy" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/fcl-for-scikit-fuzzy" vcs="Git" />
   </component>
 </project>
