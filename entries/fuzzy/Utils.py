@@ -2,19 +2,6 @@ from Log import debug
 import math
 from Fuzzy import fuzzify_hashtable
 
-
-def calculate_center_of_gravity(planets):
-    x = 0
-    y = 0
-    for planet in planets:
-        x += planet.X()
-        y += planet.Y()
-    # endfor
-    x = x / len(planets)
-    y = y / len(planets)
-    return x, y
-
-
 def get_available_invasion_ships(my_planet, pw):
     invasion_ships = my_planet.NumShips() - 1
     planet_ships = my_planet.NumShips()
@@ -34,55 +21,69 @@ def get_available_invasion_ships(my_planet, pw):
     return invasion_ships
 
 
-def get_necessary_invasion_ships (foreign_planet, distance_to_planet, pw):
-    turn_until_my_fleet_arrives = int(distance_to_planet)
-    planet_ships = foreign_planet.NumShips() + 1
+def get_necessary_invasion_ships(foreign_planet, distance_to_planet, pw):
+    turn_until_my_fleet_arrives = int(distance_to_planet) + 1
     planet_owner = foreign_planet.Owner()
 
-    while turn_until_my_fleet_arrives > 0:
-        fleets_coming_in = get_incoming_fleets_in_exacly_x_turns(foreign_planet.PlanetID(), turn_until_my_fleet_arrives, pw)
-        if len(fleets_coming_in) > 0:
-            invading_enemy_ships = sum([invasion_fleet.NumShips() for invasion_fleet in fleets_coming_in if invasion_fleet.Owner() == 2])
-            invading_own_ships = sum([invasion_fleet.NumShips() for invasion_fleet in fleets_coming_in if invasion_fleet.Owner() == 1])
-            # debug("turn {0} [invading enemy ships: {1}] [invading own ships: {2}]".format(
-            #     turn_until_my_fleet_arrives, invading_enemy_ships, invading_own_ships))
+    # while turn_until_my_fleet_arrives > 0:
+    #     fleets_coming_in = get_incoming_fleets_in_exacly_x_turns(foreign_planet.PlanetID(), turn_until_my_fleet_arrives, pw)
+    #     if len(fleets_coming_in) > 0:
+    #         invading_enemy_ships = sum([invasion_fleet.NumShips() for invasion_fleet in fleets_coming_in if invasion_fleet.Owner() == 2])
+    #         invading_own_ships = sum([invasion_fleet.NumShips() for invasion_fleet in fleets_coming_in if invasion_fleet.Owner() == 1])
+    #         # debug("turn {0} [invading enemy ships: {1}] [invading own ships: {2}]".format(
+    #         #     turn_until_my_fleet_arrives, invading_enemy_ships, invading_own_ships))
+    #
+    #         if planet_owner == 0:
+    #             if invading_enemy_ships > planet_ships and invading_enemy_ships > invading_own_ships:
+    #                 planet_owner = 2
+    #                 planet_ships = invading_enemy_ships - max(planet_ships, invading_own_ships)
+    #             elif planet_ships >= invading_enemy_ships and planet_ships >= invading_own_ships:
+    #                 planet_owner = 0
+    #                 planet_ships = planet_ships - max(invading_enemy_ships, invading_own_ships)
+    #             else:
+    #                 planet_owner = 1
+    #                 planet_ships = invading_own_ships - max(invading_enemy_ships, planet_ships)
+    #             #endif
+    #         elif planet_owner == 1:
+    #             return 0
+    #             # planet_ships = invading_enemy_ships - planet_ships - invading_own_ships
+    #             # if planet_ships > 0:
+    #             #     # change owner
+    #             #     planet_owner = 2
+    #             # else:
+    #             #     planet_ships = 0 - planet_ships
+    #             # #endif
+    #         elif planet_owner == 2:
+    #             planet_ships = invading_own_ships - planet_ships - invading_enemy_ships
+    #             if planet_ships > 0:
+    #                 #change owner
+    #                 planet_owner = 1
+    #                 return 0
+    #             else:
+    #                 planet_ships = 0 - planet_ships
+    #             #endif
+    #         #endif
+    #     # else:
+    #     #     debug("no fleets coming in at turn: {0}".format(turn_until_my_fleet_arrives))
+    #     # #endif
+    #     turn_until_my_fleet_arrives -= 1
+    # #endwhile
 
-            if planet_owner == 0:
-                if invading_enemy_ships > planet_ships and invading_enemy_ships > invading_own_ships:
-                    planet_owner = 2
-                    planet_ships = invading_enemy_ships - max(planet_ships, invading_own_ships)
-                elif planet_ships >= invading_enemy_ships and planet_ships >= invading_own_ships:
-                    planet_owner = 0
-                    planet_ships = planet_ships - max(invading_enemy_ships, invading_own_ships)
-                else:
-                    planet_owner = 1
-                    planet_ships = invading_own_ships - max(invading_enemy_ships, planet_ships)
-                #endif
-            elif planet_owner == 1:
-                return 0
-                # planet_ships = invading_enemy_ships - planet_ships - invading_own_ships
-                # if planet_ships > 0:
-                #     # change owner
-                #     planet_owner = 2
-                # else:
-                #     planet_ships = 0 - planet_ships
-                # #endif
-            elif planet_owner == 2:
-                planet_ships = invading_own_ships - planet_ships - invading_enemy_ships
-                if planet_ships > 0:
-                    #change owner
-                    planet_owner = 1
-                    return 0
-                else:
-                    planet_ships = 0 - planet_ships
-                #endif
-            #endif
-        # else:
-        #     debug("no fleets coming in at turn: {0}".format(turn_until_my_fleet_arrives))
-        # #endif
-        turn_until_my_fleet_arrives -= 1
+    turn = 0
+    if foreign_planet.Owner() != 1:
+        balance =  foreign_planet.NumShips()
+    else:
+        balance =  0 - foreign_planet.NumShips()
+
+    while turn < turn_until_my_fleet_arrives:
+
+        enemy_fleets_coming_in = get_incoming_fleets_in_exacly_x_turns(foreign_planet.PlanetID(), turn_until_my_fleet_arrives, pw)
+        enemy_ships_coming_in = reduce(lambda a,b: )
+        own_ships_coming_in = 0
+
+        #endfor
+        turn += 1
     #endwhile
-
     if planet_owner == 1:
         return 0
     #endif
@@ -168,51 +169,7 @@ def calculate_opportunity_fuzzy_logic(available_ships_for_invasion, necessary_sh
     return opportunity
 
 
-def calculate_center_of_gravity_opportunity(turn, potential_target, own_center_x, own_center_y):
-    opportunity = 1
-    if turn > 50:
-        distance_to_own_center = math.sqrt(abs(potential_target.X() * potential_target.X() - own_center_x * own_center_x) +
-                                           abs(potential_target.Y() * potential_target.Y() - own_center_y * own_center_y))
 
-        if distance_to_own_center > 400:
-            # neutral
-            opportunity = 0.2
-        elif distance_to_own_center > 300:
-            # neutral
-            opportunity = 0.5
-        elif distance_to_own_center > 200:
-            # neutral
-            opportunity = 0.7
-        elif distance_to_own_center > 100:
-            # neutral
-            opportunity = 0.80
-        elif distance_to_own_center > 50:
-            # neutral
-            opportunity = 0.90
-        elif distance_to_own_center > 40:
-            # neutral
-            opportunity = 0.92
-        elif distance_to_own_center > 30:
-            # neutral
-            opportunity = 0.95
-        elif distance_to_own_center > 20:
-            # neutral
-            opportunity = 0.96
-        elif distance_to_own_center > 15:
-            # neutral
-            opportunity = 0.97
-        elif distance_to_own_center > 10:
-            # neutral
-            opportunity = 0.98
-        elif distance_to_own_center > 5:
-            # neutral
-            opportunity = 0.99
-        else:
-            # neutral
-            opportunity = 1
-        # endif
-    #endif
-    return opportunity
 
 def get_my_planets(pw):
     return filter(lambda x: x.Owner() == 1, pw.Planets())
@@ -232,11 +189,15 @@ def get_incoming_fleets(planet_id, pw):
 
 def get_incoming_fleets_in_exacly_x_turns(planet_id, turns, pw):
     ret = filter(lambda x: x.DestinationPlanet() == planet_id and x.TurnsRemaining() == turns, pw.Fleets())
-    # if len(ret) > 0:
-    #     debug("get incoming fleets for planet id {0} in {1} turns = {2} fleets".format(planet_id, turns, len(ret)))
-    # #endif
     return ret
 
+def get_incoming_enemy_fleets_in_exacly_x_turns(planet_id, turns, pw):
+    ret = filter(lambda x: x.DestinationPlanet() == planet_id and x.TurnsRemaining() == turns and x.Owner() == 2, pw.Fleets())
+    return ret
+
+def get_incoming_own_fleets_in_exacly_x_turns(planet_id, turns, pw):
+    ret = filter(lambda x: x.DestinationPlanet() == planet_id and x.TurnsRemaining() == turns and x.Owner() == 1, pw.Fleets())
+    return ret
 
 def get_incoming_opponent_fleets(planet_id, pw):
     return filter(lambda x: x.DestinationPlanet() == planet_id and x.Owner() == 2, pw.Fleets())
@@ -284,3 +245,10 @@ def send(pw, my_planet, target, available_invasion_ships, distances):
     #                                    distances[my_planet.PlanetID(), target.PlanetID()],  # Total trip length
     #                                    distances[my_planet.PlanetID(), target.PlanetID()]))  # Turns remaining)
     my_planet.NumShips(new_num_ships=my_planet.NumShips() - available_invasion_ships)
+
+
+if __name__ == "__main__":
+    get_necessary_invasion_ships()
+    pass
+
+

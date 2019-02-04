@@ -61,7 +61,6 @@ PICKLED_DICT = "pickledict.py"
 loaded_dict = None
 
 
-
 def fuzzify_hashtable(game_time, distance, ships_surplus):
     if game_time < 0:
         game_time = 0
@@ -79,6 +78,7 @@ def fuzzify_hashtable(game_time, distance, ships_surplus):
         ships_surplus = SHIPS_MAX_LIMIT - 1
     #endif
     pickledict.a((game_time, distance, ships_surplus))
+
 
 def fuzzify(game_time, distance, ships_surplus):
     global opportunity, opportunity_ctrl
