@@ -6,26 +6,26 @@ from Log import debug
 import pickledict
 from fcl_parser import FCLParser
 
-SHIPS_MAX_LIMIT = 10
-SHIPS_MIN_LIMIT = -10
-DISTANCE_MAX_LIMIT = 100
-GAME_TIME_LIMIT = 201
-PLANET_SIZE_MAX_LIMIT = 17
+SHIPS_MAX_LIMIT = 3
+SHIPS_MIN_LIMIT = -3
+DISTANCE_MAX_LIMIT = 10
+GAME_TIME_LIMIT = 10
+PLANET_SIZE_MAX_LIMIT = 10
 
 PICKLED_DICT = "fuzzy_granular_1_results_dict.py"
 FCL_RULES_FILE = "invasion_opportunity.fcl"
 loaded_dict = None
 
 
-def fuzzify_hashtable(game_time, distance, ships_surplus, planet_size):
+def fuzzify_hashtable(game_time, distance_percentage, ships_surplus, planet_size_percentage):
     if game_time < 0:
         game_time = 0
     elif game_time >= GAME_TIME_LIMIT:
         game_time = GAME_TIME_LIMIT - 1
     # endif
 
-    if distance >= DISTANCE_MAX_LIMIT:
-        distance = DISTANCE_MAX_LIMIT - 1
+    if distance_percentage >= DISTANCE_MAX_LIMIT:
+        distance_percentage = DISTANCE_MAX_LIMIT - 1
     # endif
 
     if ships_surplus <= SHIPS_MIN_LIMIT:
@@ -34,11 +34,11 @@ def fuzzify_hashtable(game_time, distance, ships_surplus, planet_size):
         ships_surplus = SHIPS_MAX_LIMIT - 1
     #endif
 
-    if planet_size >= PLANET_SIZE_MAX_LIMIT:
-        planet_size = PLANET_SIZE_MAX_LIMIT
+    if planet_size_percentage >= PLANET_SIZE_MAX_LIMIT:
+        planet_size_percentage = PLANET_SIZE_MAX_LIMIT
     #endif
 
-    pickledict.a((game_time, distance, ships_surplus, planet_size))
+    pickledict.a((game_time, distance_percentage, ships_surplus, planet_size))
 
 
 def fuzzify(game_time, distance, ships_surplus, planet_size):
@@ -88,10 +88,14 @@ if __name__ == "__main__":
             opportunity_ctrl = ctrl.ControlSystem(p.rules)
             opportunity = ctrl.ControlSystemSimulation(opportunity_ctrl)
 
-            for game_time_index in range(1, GAME_TIME_LIMIT):
-                for distance_index in range(0, DISTANCE_MAX_LIMIT):
+            for game_time_index in range(1, GAME_TIME_LIMIT+1):
+                print "game time index:", game_time_index
+                for distance_index in range(0, DISTANCE_MAX_LIMIT * 10 + 1):
+                    distance_index = float(distance_index) / 10.0
+                    print "distance index:", distance_index
                     for ships_surplus_index in range(SHIPS_MIN_LIMIT, SHIPS_MAX_LIMIT+1):
-                        for planet_size in range(1, PLANET_SIZE_MAX_LIMIT):
+                        for planet_size in range(1, PLANET_SIZE_MAX_LIMIT * 10 + 1):
+                            planet_size = float(planet_size) / 10.0
                             try:
                                 result = fuzzify(game_time_index, distance_index, ships_surplus_index, planet_size)
                                 line = "a[{0}] = {1}\n".format(
@@ -102,6 +106,7 @@ if __name__ == "__main__":
                                 exc_type, exc_obj, exc_tb = sys.exc_info()
                                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                                 debug(str(exc_type) + str(fname) + str(exc_tb.tb_lineno))
+                                raise e
                     #endfor
                 #endfor
             #endfor
