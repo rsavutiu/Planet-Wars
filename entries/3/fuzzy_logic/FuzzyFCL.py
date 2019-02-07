@@ -6,16 +6,15 @@ import fuzzy_granular_1_results_dict
 from Log import debug
 from fcl_parser import FCLParser
 
-SHIPS_MAX_LIMIT = 3
-SHIPS_MIN_LIMIT = -3
+SHIPS_MAX_LIMIT = 20
+SHIPS_MIN_LIMIT = -10
 DISTANCE_MAX_LIMIT = 10
 GAME_TIME_LIMIT = 201
 PLANET_SIZE_MAX_LIMIT = 10
 
-PICKLED_DICT = "fuzzy_granular_1_results_dict.py"
+PICKLED_DICT = "fuzzy_granular_ships_surplus_results_dict.py"
 FCL_RULES_FILE = "invasion_opportunity.fcl"
 loaded_dict = None
-
 
 def fuzzy_crisp_hashtable(game_time, distance_percentage, ships_surplus, planet_size_percentage):
     if game_time < 0:
@@ -41,7 +40,7 @@ def fuzzy_crisp_hashtable(game_time, distance_percentage, ships_surplus, planet_
     return fuzzy_granular_1_results_dict.a[(game_time, distance_percentage, ships_surplus, planet_size_percentage)]
 
 
-def crisp_output(game_time, distance, ships_surplus, planet_size):
+def crisp_output(game_time, distance_percentage, ships_surplus, planet_size_percentage):
     global opportunity, opportunity_ctrl
 
     if ships_surplus > SHIPS_MAX_LIMIT:
@@ -50,10 +49,10 @@ def crisp_output(game_time, distance, ships_surplus, planet_size):
         ships_surplus = SHIPS_MIN_LIMIT
     #endif
 
-    if distance > DISTANCE_MAX_LIMIT:
-        distance = DISTANCE_MAX_LIMIT
-    elif distance <= 0:
-        distance = 0
+    if distance_percentage > DISTANCE_MAX_LIMIT:
+        distance_percentage = DISTANCE_MAX_LIMIT
+    elif distance_percentage <= 0:
+        distance_percentage = 0
     #endif
 
     if game_time >= GAME_TIME_LIMIT:
@@ -63,9 +62,9 @@ def crisp_output(game_time, distance, ships_surplus, planet_size):
     #endif
 
     opportunity.input['game_turn'] = game_time
-    opportunity.input['distance'] = distance
+    opportunity.input['distance'] = distance_percentage
     opportunity.input['ships_surplus'] = ships_surplus
-    opportunity.input['planet_size'] = planet_size
+    opportunity.input['planet_size'] = planet_size_percentage
 
     opportunity.compute()
     ret = opportunity.output['opportunity']
@@ -81,7 +80,7 @@ if __name__ == "__main__":
     import numpy as np
     start_timestamp = time.time()
     lines = []
-    lines.append("a = {}\n")
+    lines.append("a = {\n")
     # if not os.path.isfile(PICKLED_DICT):
     with open(PICKLED_DICT, 'w') as handle:
 
@@ -101,7 +100,7 @@ if __name__ == "__main__":
 
                             try:
                                 result = crisp_output(game_time_index, distance_index, ships_surplus_index, size)
-                                line = "a[{0}] = {1}\n".format(
+                                line = "{0} : {1},\n".format(
                                     (game_time_index, distance_index, ships_surplus_index, size), result)
                                 # print line
                                 lines.append(line)
@@ -115,6 +114,10 @@ if __name__ == "__main__":
                     #endfor
                 #endfor
             #endfor
+            line = line[:-1]
+            lines = lines[:-1]
+            lines.append(line)
+            lines.append("}\n")
             handle.writelines(lines)
             handle.close()
         #endwith

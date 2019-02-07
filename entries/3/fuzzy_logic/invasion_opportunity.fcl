@@ -38,10 +38,10 @@ FUZZIFY distance			// Fuzzify input variable 'distance': { 'close', 'moderate', 
 END_FUZZIFY
 
 FUZZIFY ships_surplus			// Fuzzify input variable 'ships_surplus': { 'deficit', 'even', 'surplus' }
-	TERM deficit := (-3, 1) (-1, 1) (0, 0);
-	TERM even := (-1, 0) (0, 1) (1, 1) (2, 0);
-	TERM surplus := (1, 0) (2, 1) (3, 1);
-  RANGE := (-3.0 .. 4.0) WITH 1; // Added range for ships surplus. We need even for even at least a couple of ships there...
+	TERM deficit := (-10, 1) (-5, 1)  (1, 0);
+	TERM even := (-5, 0) (1, 1) (2, 0);
+	TERM surplus := (1, 0) (5, 1) (20, 1);
+  RANGE := (-10 .. 20) WITH 1; // Added range for ships surplus. We need even for even at least a couple of ships there...
 END_FUZZIFY
 
 FUZZIFY planet_size			// Fuzzify input variable 'planet_size': { 'puny', 'small', 'medium', 'large', 'huge' }
