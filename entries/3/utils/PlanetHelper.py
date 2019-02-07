@@ -38,64 +38,80 @@ def get_ships_on_planet_on_turn_x(my_planet, turn, pw):
     return ships
 
 
-def get_necessary_invasion_ships(foreign_planet, distance_to_planet, pw):
+def get_necessary_invasion_ships(foreign_planet, distance_to_planet, pw, max_distance):
     turn_until_my_fleet_arrives = int(distance_to_planet)
     planet_owner = foreign_planet.Owner()
     planet_ships = foreign_planet.NumShips()
     turn = 0
+    total_own_ships_coming_in = 0
+    while turn <= max_distance + 1:
+        enemy_ships_coming_in = 0
+        own_ships_coming_in = 0
 
-    while turn <= turn_until_my_fleet_arrives:
         enemy_fleets_coming_in = FleetsHelper.get_incoming_enemy_fleets_in_exacly_x_turns(
-            foreign_planet.PlanetID(), turn_until_my_fleet_arrives, pw)
+            foreign_planet.PlanetID(), turn, pw)
         if len(enemy_fleets_coming_in) > 0:
-            enemy_ships_coming_in = reduce(lambda a, b: a.NumShips() + b.NumShips(), enemy_fleets_coming_in)
-        else:
-            enemy_ships_coming_in = 0
+            for enemy_fleet in enemy_fleets_coming_in:
+                enemy_ships_coming_in += enemy_fleet.NumShips()
+            #endfor
+        #endif
 
         own_fleets_coming_in = FleetsHelper.get_incoming_own_fleets_in_exacly_x_turns(
-            foreign_planet.PlanetID(), turn_until_my_fleet_arrives, pw)
-
+            foreign_planet.PlanetID(), turn, pw)
         if len(own_fleets_coming_in) > 0:
-            own_ships_coming_in = reduce(lambda a, b: a.NumShips() + b.NumShips(), own_fleets_coming_in)
-        else:
-            own_ships_coming_in = 0
-        # endfor
-
+            for own_fleet in own_fleets_coming_in:
+                own_ships_coming_in += own_fleet.NumShips()
+            #endfor
+        #endif
+        total_own_ships_coming_in += own_ships_coming_in
         turn += 1
 
         if planet_owner == 0:
             #neutral planet
-            if planet_ships <= max(enemy_ships_coming_in, own_ships_coming_in):
+            if planet_ships < max(enemy_ships_coming_in, own_ships_coming_in):
                 planet_ships = max(enemy_ships_coming_in, own_ships_coming_in) - planet_ships
-                if (enemy_ships_coming_in > own_ships_coming_in):
+                if enemy_ships_coming_in > own_ships_coming_in:
                     planet_owner = 2
                 else:
                     planet_owner = 1
                 #endif
-
+            else:
+                #remains neutral
+                planet_ships = planet_ships - max(enemy_ships_coming_in, own_ships_coming_in)
+            #endif
         elif planet_owner == 1:
             #own planet
-            planet_ships += own_ships_coming_in
+            planet_ships += own_ships_coming_in + foreign_planet.GrowthRate()
             if planet_ships < enemy_ships_coming_in:
+                # got conquered by enemy
                 planet_owner = 2
                 planet_ships = enemy_ships_coming_in - planet_ships
+            else:
+                # stay in my possesion
+                planet_ships = planet_ships - enemy_ships_coming_in
             #endif
-
         else:
             #enemy planet
-            planet_ships += enemy_ships_coming_in
+            planet_ships += enemy_ships_coming_in + foreign_planet.GrowthRate()
             if planet_ships < own_ships_coming_in:
+                # got conquered by me
                 planet_owner = 1
                 planet_ships = own_ships_coming_in - planet_ships
+            else:
+                #stay in the hands of the enemy
+                planet_ships = planet_ships - own_ships_coming_in
             # endif
     # endwhile
 
     if planet_owner == 1:
+        debug("Get necessary invasion ships for planet {0} at distance {1} with currently {2} ships. We have already {3} ships coming in. We are NOT sending more ships"
+        .format(foreign_planet.PlanetID(), distance_to_planet, foreign_planet.NumShips(), total_own_ships_coming_in))
         return 0
     # endif
-    debug("Get necessary invasion ships for planet at distance {0} with currently {1} ships. We need: {2}"
-          .format(distance_to_planet, foreign_planet.NumShips(), planet_ships))
-    return planet_ships
+
+    debug("Get necessary invasion ships for planet {0} at distance {1} with currently {2} ships. We have already {3} ships coming in. We need to send {4} more ships"
+          .format(foreign_planet.PlanetID(), distance_to_planet, foreign_planet.NumShips(), total_own_ships_coming_in, planet_ships + 1))
+    return planet_ships + 1
 
 
 def get_available_invasion_ships(my_planet, pw):

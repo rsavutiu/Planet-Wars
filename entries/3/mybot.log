@@ -1,115 +1,36 @@
-2019-02-04 11:39:08,953 starting
-2019-02-04 11:39:11,153 NEW TURN
-2019-02-04 11:39:11,154 WIN Ratio: 0.634615384615
-2019-02-04 11:39:11,154 DO TURN 0
-2019-02-04 11:39:11,157 invade with max 5 out of 5
-2019-02-04 11:39:11,157 invade planets from planet 2. Invasion fleet available: 5
-2019-02-04 11:39:11,157 Ignoring planet 15 with 12 ships on it. It's fine.
-2019-02-04 11:39:11,158 Ignoring planet 21 with 5 ships on it. It's fine.
-2019-02-04 11:39:11,160 Ignoring planet 3 with 23 ships on it. It's fine.
-2019-02-04 11:39:11,160 Ignoring planet 4 with 4 ships on it. It's fine.
-2019-02-04 11:39:11,160 Ignoring planet 7 with 3 ships on it. It's fine.
-2019-02-04 11:39:11,169 Target of opportunity  OWN!!!!  planet 6 currently contains 7 ships with opportunity 0.309041145145 at distance 8.62276109206. Necessary ships to take: 8
-2019-02-04 11:39:11,169 Send relief force 5 ships from planet id 2 to  OWN!!!!  planet id 6 which currently has 7 ships landed on it
-2019-02-04 11:39:11,169 finished invasion ships 0
-2019-02-04 11:39:11,169 invade with max 4 out of 4
-2019-02-04 11:39:11,169 invade planets from planet 4. Invasion fleet available: 4
-2019-02-04 11:39:11,170 Ignoring planet 15 with 12 ships on it. It's fine.
-2019-02-04 11:39:11,172 Ignoring planet 21 with 5 ships on it. It's fine.
-2019-02-04 11:39:11,174 Ignoring planet 3 with 23 ships on it. It's fine.
-2019-02-04 11:39:11,174 Ignoring planet 7 with 3 ships on it. It's fine.
-2019-02-04 11:39:11,175 Ignoring planet 2 with 0 ships on it. It's fine.
-2019-02-04 11:39:11,185 Target of opportunity  OWN!!!!  planet 6 currently contains 7 ships with opportunity 0.360992819606 at distance 5.69151037222. Necessary ships to take: 8
-2019-02-04 11:39:11,185 Send relief force 4 ships from planet id 4 to  OWN!!!!  planet id 6 which currently has 7 ships landed on it
-2019-02-04 11:39:11,185 finished invasion ships 0
-2019-02-04 11:39:11,185 invade with max 7 out of 7
-2019-02-04 11:39:11,185 invade planets from planet 6. Invasion fleet available: 7
-2019-02-04 11:39:11,186 Ignoring planet 15 with 12 ships on it. It's fine.
-2019-02-04 11:39:11,188 Ignoring planet 3 with 23 ships on it. It's fine.
-2019-02-04 11:39:11,188 Ignoring planet 4 with 0 ships on it. It's fine.
-2019-02-04 11:39:11,189 Ignoring planet 21 with 5 ships on it. It's fine.
-2019-02-04 11:39:11,191 Ignoring planet 2 with 0 ships on it. It's fine.
-2019-02-04 11:39:11,193 Ignoring planet 7 with 3 ships on it. It's fine.
-2019-02-04 11:39:11,213 Target of opportunity  Neutral  planet 20 currently contains 37 ships with opportunity 0.211730363353 at distance 9.13563145584. Necessary ships to take: 28
-2019-02-04 11:39:11,213 Send invasion force 7 ships from planet id 6 to  Neutral  planet id 20 which currently has 37 ships landed on it
-2019-02-04 11:39:11,213 finished invasion ships 0
-2019-02-04 11:39:11,213 invade with max 5 out of 12
-2019-02-04 11:39:11,213 invade planets from planet 15. Invasion fleet available: 5
-2019-02-04 11:39:11,213 Ignoring planet 21 with 5 ships on it. It's fine.
-2019-02-04 11:39:11,214 Ignoring planet 7 with 3 ships on it. It's fine.
-2019-02-04 11:39:11,216 Ignoring planet 2 with 0 ships on it. It's fine.
-2019-02-04 11:39:11,217 Ignoring planet 4 with 0 ships on it. It's fine.
-2019-02-04 11:39:11,217 Ignoring planet 3 with 23 ships on it. It's fine.
-2019-02-04 11:39:11,219 Ignoring planet 6 with 0 ships on it. It's fine.
-2019-02-04 11:39:11,269 Target of opportunity  Neutral  planet 19 currently contains 41 ships with opportunity 0.176824335805 at distance 11.4735321491. Necessary ships to take: 42
-2019-02-04 11:39:11,269 Send invasion force 5 ships from planet id 15 to  Neutral  planet id 19 which currently has 41 ships landed on it
-2019-02-04 11:39:11,269 finished invasion ships 0
-2019-02-04 11:39:11,269 invade with max 5 out of 5
-2019-02-04 11:39:11,269 invade planets from planet 21. Invasion fleet available: 5
-2019-02-04 11:39:11,270 Ignoring planet 15 with 7 ships on it. It's fine.
-2019-02-04 11:39:11,270 Ignoring planet 7 with 3 ships on it. It's fine.
-2019-02-04 11:39:11,271 Ignoring planet 3 with 23 ships on it. It's fine.
-2019-02-04 11:39:11,272 Ignoring planet 4 with 0 ships on it. It's fine.
-2019-02-04 11:39:11,273 Ignoring planet 2 with 0 ships on it. It's fine.
-2019-02-04 11:39:11,277 Ignoring planet 6 with 0 ships on it. It's fine.
-2019-02-04 11:39:11,348 Target of opportunity  Neutral  planet 9 currently contains 74 ships with opportunity 0.187663531233 at distance 8.05927618299. Necessary ships to take: 75
-2019-02-04 11:39:11,348 Send invasion force 5 ships from planet id 21 to  Neutral  planet id 9 which currently has 74 ships landed on it
-2019-02-04 11:39:11,348 finished invasion ships 0
-2019-02-04 11:39:11,348 TURN FINISHED
-2019-02-04 11:39:12,594 NEW TURN
-2019-02-04 11:39:12,594 WIN Ratio: 0.634615384615
-2019-02-04 11:39:12,594 DO TURN 1
-2019-02-04 11:39:12,595 invade with max 5 out of 5
-2019-02-04 11:39:12,595 invade planets from planet 2. Invasion fleet available: 5
-2019-02-04 11:39:12,595 Ignoring planet 15 with 12 ships on it. It's fine.
-2019-02-04 11:39:12,596 Ignoring planet 21 with 5 ships on it. It's fine.
-2019-02-04 11:39:12,598 Ignoring planet 3 with 23 ships on it. It's fine.
-2019-02-04 11:39:12,598 Ignoring planet 4 with 4 ships on it. It's fine.
-2019-02-04 11:39:12,598 Ignoring planet 7 with 3 ships on it. It's fine.
-2019-02-04 11:39:12,607 Target of opportunity  OWN!!!!  planet 6 currently contains 7 ships with opportunity 0.367131430727 at distance 8.62276109206. Necessary ships to take: 8
-2019-02-04 11:39:12,607 Send relief force 5 ships from planet id 2 to  OWN!!!!  planet id 6 which currently has 7 ships landed on it
-2019-02-04 11:39:12,607 finished invasion ships 0
-2019-02-04 11:39:12,608 invade with max 4 out of 4
-2019-02-04 11:39:12,608 invade planets from planet 4. Invasion fleet available: 4
-2019-02-04 11:39:12,608 Ignoring planet 15 with 12 ships on it. It's fine.
-2019-02-04 11:39:12,610 Ignoring planet 21 with 5 ships on it. It's fine.
-2019-02-04 11:39:12,612 Ignoring planet 3 with 23 ships on it. It's fine.
-2019-02-04 11:39:12,612 Ignoring planet 7 with 3 ships on it. It's fine.
-2019-02-04 11:39:12,613 Ignoring planet 2 with 0 ships on it. It's fine.
-2019-02-04 11:39:12,624 Target of opportunity  OWN!!!!  planet 6 currently contains 7 ships with opportunity 0.428848431434 at distance 5.69151037222. Necessary ships to take: 8
-2019-02-04 11:39:12,624 Send relief force 4 ships from planet id 4 to  OWN!!!!  planet id 6 which currently has 7 ships landed on it
-2019-02-04 11:39:12,624 finished invasion ships 0
-2019-02-04 11:39:12,624 invade with max 7 out of 7
-2019-02-04 11:39:12,624 invade planets from planet 6. Invasion fleet available: 7
-2019-02-04 11:39:12,624 Ignoring planet 15 with 12 ships on it. It's fine.
-2019-02-04 11:39:12,626 Ignoring planet 3 with 23 ships on it. It's fine.
-2019-02-04 11:39:12,626 Ignoring planet 4 with 0 ships on it. It's fine.
-2019-02-04 11:39:12,628 Ignoring planet 21 with 5 ships on it. It's fine.
-2019-02-04 11:39:12,630 Ignoring planet 2 with 0 ships on it. It's fine.
-2019-02-04 11:39:12,632 Ignoring planet 7 with 3 ships on it. It's fine.
-2019-02-04 11:39:12,651 Target of opportunity  Neutral  planet 20 currently contains 37 ships with opportunity 0.251529197479 at distance 9.13563145584. Necessary ships to take: 28
-2019-02-04 11:39:12,651 Send invasion force 7 ships from planet id 6 to  Neutral  planet id 20 which currently has 37 ships landed on it
-2019-02-04 11:39:12,651 finished invasion ships 0
-2019-02-04 11:39:12,652 invade with max 5 out of 12
-2019-02-04 11:39:12,652 invade planets from planet 15. Invasion fleet available: 5
-2019-02-04 11:39:12,652 Ignoring planet 21 with 5 ships on it. It's fine.
-2019-02-04 11:39:12,652 Ignoring planet 7 with 3 ships on it. It's fine.
-2019-02-04 11:39:12,654 Ignoring planet 2 with 0 ships on it. It's fine.
-2019-02-04 11:39:12,655 Ignoring planet 4 with 0 ships on it. It's fine.
-2019-02-04 11:39:12,656 Ignoring planet 3 with 23 ships on it. It's fine.
-2019-02-04 11:39:12,657 Ignoring planet 6 with 0 ships on it. It's fine.
-2019-02-04 11:39:12,708 Target of opportunity  Neutral  planet 9 currently contains 74 ships with opportunity 0.20408545259 at distance 9.58150340346. Necessary ships to take: 75
-2019-02-04 11:39:12,708 Send invasion force 5 ships from planet id 15 to  Neutral  planet id 9 which currently has 74 ships landed on it
-2019-02-04 11:39:12,708 finished invasion ships 0
-2019-02-04 11:39:12,709 invade with max 5 out of 5
-2019-02-04 11:39:12,709 invade planets from planet 21. Invasion fleet available: 5
-2019-02-04 11:39:12,709 Ignoring planet 15 with 7 ships on it. It's fine.
-2019-02-04 11:39:12,710 Ignoring planet 7 with 3 ships on it. It's fine.
-2019-02-04 11:39:12,710 Ignoring planet 3 with 23 ships on it. It's fine.
-2019-02-04 11:39:12,711 Ignoring planet 4 with 0 ships on it. It's fine.
-2019-02-04 11:39:12,712 Ignoring planet 2 with 0 ships on it. It's fine.
-2019-02-04 11:39:12,716 Ignoring planet 6 with 0 ships on it. It's fine.
-2019-02-04 11:39:12,786 Target of opportunity  Neutral  planet 9 currently contains 74 ships with opportunity 0.222938536824 at distance 8.05927618299. Necessary ships to take: 75
-2019-02-04 11:39:12,787 Send invasion force 5 ships from planet id 21 to  Neutral  planet id 9 which currently has 74 ships landed on it
-2019-02-04 11:39:12,787 finished invasion ships 0
-2019-02-04 11:39:12,787 TURN FINISHED
+2019-02-07 14:56:11,355 starting
+2019-02-07 14:56:13,952 DO TURN 0. I have 1 planets
+2019-02-07 14:56:13,952 WIN Ratio: 0.135135135135
+2019-02-07 14:56:15,057 invade with max 5 out of 5
+2019-02-07 14:56:17,604 invade planets from planet 0. Invasion fleet available: 5. Neighbors: 21
+2019-02-07 14:58:08,753 Get necessary invasion ships for planet 15 at distance 4.20218587912 with currently 9 ships. We have already 0 ships coming in. We need to send 117 more ships
+2019-02-07 14:58:40,697 Get necessary invasion ships for planet 16 at distance 5.78248445183 with currently 69 ships. We have already 11 ships coming in. We need to send 59 more ships
+2019-02-07 14:58:44,505 Get necessary invasion ships for planet 21 at distance 6.28520572799 with currently 35 ships. We have already 0 ships coming in. We need to send 107 more ships
+2019-02-07 14:58:44,506 Get necessary invasion ships for planet 10 at distance 8.0197510471 with currently 85 ships. We have already 0 ships coming in. We need to send 86 more ships
+2019-02-07 14:58:44,507 Get necessary invasion ships for planet 4 at distance 8.62276094242 with currently 32 ships. We have already 0 ships coming in. We need to send 11 more ships
+2019-02-07 14:58:44,508 Get necessary invasion ships for planet 7 at distance 10.138518434 with currently 60 ships. We have already 0 ships coming in. We need to send 61 more ships
+2019-02-07 14:58:44,509 Get necessary invasion ships for planet 2 at distance 10.2028043841 with currently 21 ships. We have already 0 ships coming in. We need to send 22 more ships
+2019-02-07 14:58:44,511 Get necessary invasion ships for planet 18 at distance 13.2989665801 with currently 41 ships. We have already 0 ships coming in. We need to send 42 more ships
+2019-02-07 14:58:44,512 Get necessary invasion ships for planet 9 at distance 13.3627130591 with currently 74 ships. We have already 0 ships coming in. We need to send 75 more ships
+2019-02-07 14:58:44,513 Get necessary invasion ships for planet 13 at distance 13.9954869664 with currently 72 ships. We have already 0 ships coming in. We need to send 73 more ships
+2019-02-07 14:58:44,514 Get necessary invasion ships for planet 19 at distance 14.3346786761 with currently 41 ships. We have already 0 ships coming in. We need to send 42 more ships
+2019-02-07 14:58:44,515 Get necessary invasion ships for planet 3 at distance 16.7699438455 with currently 21 ships. We have already 23 ships coming in. We are NOT sending more ships
+2019-02-07 14:58:44,515 Ignoring planet 3 with 21 ships on it. It's fine.
+2019-02-07 14:58:44,516 Get necessary invasion ships for planet 17 at distance 17.3489975701 with currently 69 ships. We have already 0 ships coming in. We need to send 70 more ships
+2019-02-07 14:58:44,517 Get necessary invasion ships for planet 8 at distance 17.9054715669 with currently 74 ships. We have already 29 ships coming in. We need to send 46 more ships
+2019-02-07 14:58:44,518 Get necessary invasion ships for planet 12 at distance 18.9031873942 with currently 72 ships. We have already 0 ships coming in. We need to send 73 more ships
+2019-02-07 14:58:44,519 Get necessary invasion ships for planet 11 at distance 19.9024246893 with currently 85 ships. We have already 0 ships coming in. We need to send 86 more ships
+2019-02-07 14:58:44,520 Get necessary invasion ships for planet 6 at distance 19.9303687832 with currently 60 ships. We have already 0 ships coming in. We need to send 61 more ships
+2019-02-07 14:58:44,521 Get necessary invasion ships for planet 14 at distance 20.8660724072 with currently 9 ships. We have already 0 ships coming in. We need to send 10 more ships
+2019-02-07 14:58:44,522 Get necessary invasion ships for planet 20 at distance 21.2537956424 with currently 35 ships. We have already 0 ships coming in. We need to send 36 more ships
+2019-02-07 14:58:44,523 Get necessary invasion ships for planet 1 at distance 21.3001676854 with currently 37 ships. We have already 0 ships coming in. We need to send 178 more ships
+2019-02-07 14:58:44,525 Get necessary invasion ships for planet 5 at distance 22.1822005014 with currently 32 ships. We have already 0 ships coming in. We need to send 33 more ships
+2019-02-07 14:58:46,155 0 Target: planet 15 with opportunity: 0.137444071746
+2019-02-07 14:58:46,156 Get necessary invasion ships for planet 15 at distance 4.20218587912 with currently 9 ships. We have already 0 ships coming in. We need to send 117 more ships
+2019-02-07 14:58:46,156 Target of opportunity  Neutral  planet 15 currently contains 9 ships with opportunity 0.137444071746 at distance 4.20218587912. Necessary ships to take: 117
+2019-02-07 14:58:46,156 Send invasion force 5 ships from planet id 0 to  Neutral  planet id 15 which currently has 9 ships landed on it
+2019-02-07 14:58:46,158 Get necessary invasion ships for planet 15 at distance 4.20218587912 with currently 9 ships. We have already 0 ships coming in. We need to send 117 more ships
+2019-02-07 14:58:46,158 AFTER SENDING SHIPS! Target of opportunity  Neutral  planet 15 currently contains 9 ships with opportunity 0.137444071746 at distance 4.20218587912. Necessary ships to take: 117
+2019-02-07 14:58:46,158 finished invasion ships 0
+2019-02-07 14:58:46,158 ignored planets  1
+2019-02-07 14:58:46,158 END TURN 0 in time: 153689.628839 ms

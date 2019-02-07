@@ -21,20 +21,25 @@ import utils.FleetsHelper
 import utils.CenterOfGravity
 import utils.Utils
 
+import fuzzy_logic.FuzzyFCL
+
 distances = {}
 nearestNeighbors = {}
+max_planet_size = 1
 universe_max_space = None
 turn = 0
-dists = []
 actual_distances = []
-ATTACK_LIMIT = 5
-
+ATTACK_LIMIT = 8
+max_distance = 0
 
 def compute_planet_distances(pw):
-    actual_distances
+    global max_planet_size, max_distance, nearestNeighbors
     planets = sorted(pw.Planets(), key=lambda x: x.PlanetID())
     for p in planets:
-
+        if p.GrowthRate() > max_planet_size:
+            max_planet_size = p.GrowthRate()
+        #endif
+        dists = []
         distances[p.PlanetID()] = {}
         for q in planets:
             if q.PlanetID() != p.PlanetID():
@@ -44,6 +49,9 @@ def compute_planet_distances(pw):
                 x = (q.PlanetID(), actual_distance)
                 dists.append(x)
                 actual_distances.append(actual_distance)
+                if actual_distance > max_distance:
+                    max_distance = actual_distance
+                #endif
                 distances[p.PlanetID()][q.PlanetID()] = actual_distance
             # endif
         # endfor
@@ -53,40 +61,19 @@ def compute_planet_distances(pw):
 
 
 def invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn, ignored_planets):
+    global max_planet_size, max_distance
     try:
-        targets_of_opportunity = {}
 
-        debug("invade planets from planet {0}. Invasion fleet available: {1}"
-              .format(my_planet.PlanetID(), total_invasion_ships_for_planet))
-        for nearest_neighbour_ids in nearestNeighbors[my_planet.PlanetID()]:
-            nearest_neighbour = pw.GetPlanet(nearest_neighbour_ids[0])
-            if my_planet.PlanetID() != nearest_neighbour.PlanetID() and not ignored_planets.count(nearest_neighbour.PlanetID()) > 0:
-                distance_to_planet = distances[my_planet.PlanetID()][nearest_neighbour.PlanetID()]
-                necessary_ships_to_invade = utils.PlanetHelper.get_necessary_invasion_ships(nearest_neighbour,
-                                                                                            distance_to_planet, pw)
+        debug("invade planets from planet {0}. Invasion fleet available: {1}. Neighbors: {2}"
+              .format(my_planet.PlanetID(), total_invasion_ships_for_planet, len(nearestNeighbors[my_planet.PlanetID()])))
 
-                if necessary_ships_to_invade > 0:
-                    opportunity = utils.Utils.calculate_opportunity_fuzzy_logic(total_invasion_ships_for_planet,
-                                                                                necessary_ships_to_invade,
-                                                                                nearest_neighbour, distance_to_planet,
-                                                                                turn, max(actual_distances))
-                    targets_of_opportunity[nearest_neighbour] = opportunity
-                else:
-                    debug("Ignoring planet {0} with {1} ships on it. It's fine.".format(
-                        nearest_neighbour.PlanetID(), nearest_neighbour.NumShips()))
-                    ignored_planets.append(nearest_neighbour.PlanetID())
-                    # debug("processing neighbor {0} planet {1} currently contains {2} ships with "
-                    #       " at distance {3}. Necessary ships to take: {4}. Opp: {5}"
-                    #       .format(get_planet_type(nearest_neighbour), nearest_neighbour.PlanetID(),
-                    #               nearest_neighbour.NumShips(),
-                    #               distance_to_planet, necessary_ships_to_invade, opportunity))
-                #endif
-        # endfor
 
+        targets_of_opportunity = calculate_all_opportunities(my_planet, pw, ignored_planets, total_invasion_ships_for_planet)
         opportunity_targets = reversed(sorted(targets_of_opportunity, key=targets_of_opportunity.get))
 
         limit_index = 0
         for opportunity_target in opportunity_targets:
+            debug("{0} Target: planet {1} with opportunity: {2}".format(limit_index, opportunity_target.PlanetID(), targets_of_opportunity[opportunity_target]))
             if limit_index > ATTACK_LIMIT:
                 break
             #endif
@@ -99,7 +86,7 @@ def invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn, ignored
             distance_to_planet = distances[my_planet.PlanetID()][opportunity_target.PlanetID()]
             sent_ships = 0
             necessary_ships_to_invade = \
-                utils.PlanetHelper.get_necessary_invasion_ships(opportunity_target, distance_to_planet, pw)
+                utils.PlanetHelper.get_necessary_invasion_ships(opportunity_target, distance_to_planet, pw, max_distance)
 
             debug(
                 "Target of opportunity {0} planet {1} currently contains {2} ships with "
@@ -107,14 +94,28 @@ def invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn, ignored
                     utils.PlanetHelper.get_planet_type(opportunity_target), opportunity_target.PlanetID(),
                     opportunity_target.NumShips(),
                     targets_of_opportunity[opportunity_target], distance_to_planet, necessary_ships_to_invade))
+
             if necessary_ships_to_invade > 0:
                 necessary_ships_to_invade += 1
                 sent_ships = min(total_invasion_ships_for_planet, necessary_ships_to_invade)
-                utils.Utils.send(pw, my_planet, opportunity_target, sent_ships)
+                utils.Utils.send(pw, my_planet, opportunity_target, sent_ships, math.ceil(distances[my_planet.PlanetID()][opportunity_target.PlanetID()]))
+                necessary_ships_to_invade = \
+                    utils.PlanetHelper.get_necessary_invasion_ships(opportunity_target, distance_to_planet, pw,
+                                                                    max_distance)
+                debug(
+                    "AFTER SENDING SHIPS! Target of opportunity {0} planet {1} currently contains {2} ships with "
+                    "opportunity {3} at distance {4}. Necessary ships to take: {5}".format(
+                        utils.PlanetHelper.get_planet_type(opportunity_target), opportunity_target.PlanetID(),
+                        opportunity_target.NumShips(),
+                        targets_of_opportunity[opportunity_target], distance_to_planet, necessary_ships_to_invade))
+
+                if sent_ships > necessary_ships_to_invade:
+                    ignored_planets.append(opportunity_target.PlanetID())
+                #endif
             # endif
 
             total_invasion_ships_for_planet -= sent_ships
-            if total_invasion_ships_for_planet <= 4:
+            if total_invasion_ships_for_planet <= 0:
                 debug("finished invasion ships {0}".format(total_invasion_ships_for_planet))
                 return ignored_planets
             # endif
@@ -126,7 +127,7 @@ def invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn, ignored
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         debug(str(exc_type) + str(fname) + str(exc_tb.tb_lineno))
         debug(str(e) + str(e.message))
-        #raise e
+        # raise e
 
 
 def DoTurn(pw):
@@ -173,6 +174,7 @@ def DoTurn(pw):
                 #       "Available for invasion: {2} ships"
                 #       .format(my_planet.PlanetID(), my_planet.NumShips(), total_invasion_ships_for_planet))
                 ignored_planets = invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn, ignored_planets)
+                debug("ignored planets  {0}".format(len(ignored_planets)))
             else:
                 debug("Planet {0} with {1} ships cannot attack, it will be overrun soon...".format(
                     my_planet.PlanetID(), my_planet.NumShips()))
@@ -189,6 +191,64 @@ def DoTurn(pw):
         debug(str(e) + str(e.message))
         # raise e
 
+
+def calculate_all_opportunities(my_planet, pw, ignored_planets, total_invasion_ships_for_planet):
+    targets_of_opportunity = {}
+    for nearest_neighbour_ids in nearestNeighbors[my_planet.PlanetID()]:
+        nearest_neighbour = pw.GetPlanet(nearest_neighbour_ids[0])
+
+        if my_planet.PlanetID() != nearest_neighbour.PlanetID() and not ignored_planets.count(nearest_neighbour.PlanetID()) > 0:
+            distance_to_planet = distances[my_planet.PlanetID()][nearest_neighbour.PlanetID()]
+            necessary_ships_to_invade = utils.PlanetHelper.get_necessary_invasion_ships(nearest_neighbour,
+                                                                                        distance_to_planet, pw,
+                                                                                        max_distance)
+            if necessary_ships_to_invade > 0:
+                opportunity = fuzzy_logic.FuzzyFCL.fuzzy_crisp_hashtable(turn,
+                                                                         int(distance_to_planet * 10.0 / max_distance),
+                                                                         total_invasion_ships_for_planet - necessary_ships_to_invade,
+                                                                         int(
+                                                                             nearest_neighbour.GrowthRate() * 10.0 / max_planet_size))
+
+                if turn < 15:
+                    if nearest_neighbour.Owner() == 2:
+                        opportunity *= 0.4
+                    elif nearest_neighbour.Owner() == 0:
+                        opportunity *= 0.6
+                    # endif
+                elif turn < 40:
+                    if nearest_neighbour.Owner() == 2:
+                        opportunity *= 0.5
+                    elif nearest_neighbour.Owner() == 0:
+                        opportunity *= 0.7
+                    # endif
+                elif turn < 75:
+                    if nearest_neighbour.Owner() == 2:
+                        opportunity *= 0.6
+                    elif nearest_neighbour.Owner() == 0:
+                        opportunity *= 0.8
+                    # endif
+                else:
+                    if nearest_neighbour.Owner() == 2:
+                        opportunity *= 0.75
+                    elif nearest_neighbour.Owner() == 0:
+                        opportunity *= 0.95
+                    # endif
+
+                targets_of_opportunity[nearest_neighbour] = opportunity
+
+            else:
+                debug("Ignoring planet {0} with {1} ships on it. It's fine.".format(
+                    nearest_neighbour.PlanetID(), nearest_neighbour.NumShips()))
+                ignored_planets.append(nearest_neighbour.PlanetID())
+                # debug("processing neighbor {0} planet {1} currently contains {2} ships with "
+                #       " at distance {3}. Necessary ships to take: {4}. Opp: {5}"
+                #       .format(get_planet_type(nearest_neighbour), nearest_neighbour.PlanetID(),
+                #               nearest_neighbour.NumShips(),
+                #               distance_to_planet, necessary_ships_to_invade, opportunity))
+            # endif
+        # endif
+    # endfor
+    return targets_of_opportunity
 
 def main():
     debug("starting")

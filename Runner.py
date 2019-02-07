@@ -2,23 +2,26 @@ import sys
 import subprocess
 from os import remove
 
-def runGame(player1, player2, map):
+def runGame(player1, player2, map, game_number):
     # todo store these in a sensible place
-    statusFileName = 'status.log'
-    gameFileName = 't.log'
+    statusFileName = "status" + str(game_number) + ".log"
+    gameFileName = "t" + str(game_number) + ".log"
+
     status = open(statusFileName, 'w')
     game = open(gameFileName, 'w')
+
     p = subprocess.Popen(['java', '-jar', 'tools/PlayGame.jar', map, \
                           '1000', '1000', 'log.txt', \
                           player1, player2], stderr=status, stdout=game)
+
     p.wait()
     game.close()
     status.close()
-    remove(gameFileName)
+    # remove(gameFileName)
     status = open(statusFileName, 'r')
     lines = status.readlines()
     status.close()
-    remove(statusFileName)
+    # remove(statusFileName)
     if lines[len(lines)-1].split()[1] == '1':
         return 1
     else:
@@ -34,11 +37,13 @@ def main():
     p1 = sys.argv[1]
     p2 = sys.argv[2]
     p1wins = 0
-    for g in range(1, 100):
-        if runGame(p1,p2,'maps/map'+str(g)+'.txt') == 1:
+    for g in range(10, 20):
+        if runGame(p1,p2,'maps/map'+str(g)+'.txt', g) == 1:
             p1wins += 1
+            print('won on maps/map' + str(g) + '.txt')
         else:
             print('lost on maps/map'+str(g)+'.txt')
+
     print('P1 wins ' + str(100*p1wins/100.0) + '%')
 
 main()

@@ -24,14 +24,14 @@ VAR_OUTPUT				// Define output variable
 END_VAR
 
 FUZZIFY game_turn			// Fuzzify input variable 'game_turn': {'early' , 'mid', 'late'}
-	TERM early := (0, 0) (1,1) (2,1) (3,0);
-	TERM mid := (2, 0) (3, 1) (6, 1) (7, 0);
-	TERM late := (60, 0) (7,1) (10,1);
-  RANGE := (0 .. 11) WITH 1; // Added range for turns
+	TERM early := (0, 1) (10,1) (20,0);
+	TERM mid := (10, 0) (20, 1) (50, 1) (90, 0);
+	TERM late := (50, 0) (90,1) (200,1);
+  RANGE := (0 .. 201) WITH 1; // Added range for turns
 END_FUZZIFY
 
 FUZZIFY distance			// Fuzzify input variable 'distance': { 'close', 'moderate', 'far' }
-	TERM close := (0, 0) (1,1) (2,1) (3,0);
+	TERM close := (0, 1) (1,1) (2,1) (3,0);
 	TERM moderate := (2, 0) (3, 1) (6, 1) (7, 0);
 	TERM far := (60, 0) (7,1) (10,1);
   RANGE := (0 .. 11) WITH 0.1; // Added range for distance (percentage of the biggest distance found)
@@ -39,27 +39,26 @@ END_FUZZIFY
 
 FUZZIFY ships_surplus			// Fuzzify input variable 'ships_surplus': { 'deficit', 'even', 'surplus' }
 	TERM deficit := (-3, 1) (-1, 1) (0, 0);
-	TERM even := (0, 1) (1, 1) (2, 0);
+	TERM even := (-1, 0) (0, 1) (1, 1) (2, 0);
 	TERM surplus := (1, 0) (2, 1) (3, 1);
   RANGE := (-3.0 .. 4.0) WITH 1; // Added range for ships surplus. We need even for even at least a couple of ships there...
 END_FUZZIFY
 
 FUZZIFY planet_size			// Fuzzify input variable 'planet_size': { 'puny', 'small', 'medium', 'large', 'huge' }
-	TERM puny := (0, 1) (1, 2) (2, 0);
-	TERM small := (2, 0) (3, 1) (4, 0);
-	TERM medium := (4, 0) (5, 1) (6, 0);
+	TERM puny := (0, 1) (1, 1) (2, 0);
+	TERM small := (1, 0) (2, 1) (3, 1) (4, 0);
+	TERM medium := (3, 0) (4, 1) (5, 1) (6, 0);
 	TERM large := (5, 0) (6, 1) (7, 1) (8, 0);
 	TERM huge := (7, 0) (8, 1) (10, 1);
-  RANGE := (0 .. 11) WITH 0.1; // Added range for planet_size surplus( percentage of the biggest planet size)
+  RANGE := (0 .. 10.1) WITH 0.1; // Added range for planet_size surplus( percentage of the biggest planet size)
 END_FUZZIFY
 
     DEFUZZIFY opportunity			// Defuzzify output variable 'opportunity' : {'excellent', 'good', 'mediocre', 'bad', 'horrific'}
-struos'}
     TERM horrific := (0.0, 0) (0.1, 1) (0.25, 0);
-	TERM bad := (0.1, 0) (0.25, 1) (0.4, 0);
-	TERM mediocre := (0.25, 0) (0.4, 1) (0.5, 1) (0.6, 0);
-	TERM good := (0.5, 0) (0.6, 1) (0.7,1) (0.85, 0);
-	TERM excellent := (0.7, 0) (0.85, 1) (1.0, 1);
+	TERM bad := (0.1, 0) (0.25, 1) (0.3, 0);
+	TERM mediocre := (0.25, 0) (0.3, 1) (0.4, 1) (0.5, 0);
+	TERM good := (0.4, 0) (0.5, 1) (0.65,1) (0.75, 0);
+	TERM excellent := (0.65, 0) (0.75, 1) (1.0, 1);
 	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
 	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
   RANGE := (0.0 .. 1.0); // Added range for tip
@@ -70,22 +69,141 @@ RULEBLOCK No1
 	ACT : MIN;			// Use 'min' activation method
 	ACCU : MAX;			// Use 'max' accumulation method
 
-    //Early game very picky
-	RULE 1 : IF game_turn IS early AND (ships_surplus IS deficit OR distance IS far OR planet_size IS puny)  THEN opportunity IS bad;
-	RULE 2 : IF game_turn IS early AND distance IS moderate AND (planet_size IS small OR planet_size IS puny)  THEN opportunity IS bad;
-	RULE 3 : IF game_turn IS early AND distance IS moderate AND (planet_size IS medium OR planet_size IS large)  THEN opportunity IS mediocre;
-	RULE 4 : IF game_turn IS early AND distance IS moderate AND planet_size IS huge  THEN opportunity IS mediocre;
-	RULE 5 : IF game_turn IS late AND (planet_size IS small OR planet_size IS medium) AND (ships_surplus IS deficit OR distance IS far)  THEN opportunity IS bad;
-    RULE 6 : IF (game_turn IS mid OR game_turn IS late) AND ships_surplus IS deficit AND distance IS far AND (planet_size IS puny OR planet_size IS small)  THEN opportunity IS bad;
-    RULE 7 : IF (game_turn IS mid OR game_turn IS late) AND ships_surplus IS even AND distance IS moderate AND (planet_size IS puny OR planet_size IS small)  THEN opportunity IS bad;
-    RULE 8 : IF ships_surplus IS even AND (distance IS moderate OR planet_size IS small) THEN opportunity IS bad;
-    RULE 9 : IF ships_surplus IS even AND (distance IS far AND planet_size IS puny) THEN opportunity IS bad;
-    RULE 10 : IF (game_turn IS mid OR game_turn IS late) AND (ships_surplus IS deficit OR distance IS far OR planet_size IS puny)  THEN opportunity IS bad;
-    RULE 11 : IF game_turn IS late AND (planet_size IS small OR planet_size IS medium) AND ships_surplus IS even AND (distance IS far OR distance is moderate)  THEN opportunity IS mediocre;
-    RULE 12 : IF game_turn IS late AND (planet_size IS small OR planet_size IS medium) AND ships_surplus IS surplus AND (distance IS close)  THEN opportunity IS good;
-    RULE 13 : IF game_turn IS late AND (planet_size IS large OR planet_size IS huge) AND (ships_surplus IS even OR ships_surplus IS surplus)  THEN opportunity IS good;
-    RULE 14 : IF (game_turn IS mid OR game_turn IS early) AND (planet_size IS large OR planet_size IS huge OR planet_size IS medium OR planet_size IS small) AND (ships_surplus IS even OR ships_surplus IS surplus) AND (distance IS far OR distance is moderate)  THEN opportunity IS good;
-    RULE 15 : IF game_turn IS mid OR game_turn IS early AND (planet_size IS large OR planet_size IS huge OR planet_size IS medium OR planet_size IS small) AND (ships_surplus IS even OR ships_surplus IS surplus) AND (distance IS far OR distance is moderate)  THEN opportunity IS good;
+    RULE 1: IF game_turn IS early AND distance IS close AND ships_surplus IS deficit AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 2: IF game_turn IS early AND distance IS close AND ships_surplus IS deficit AND planet_size IS small THEN opportunity IS horrific;
+    RULE 3: IF game_turn IS early AND distance IS close AND ships_surplus IS deficit AND planet_size IS medium THEN opportunity IS horrific;
+    RULE 4: IF game_turn IS early AND distance IS close AND ships_surplus IS deficit AND planet_size IS large THEN opportunity IS horrific;
+    RULE 5: IF game_turn IS early AND distance IS close AND ships_surplus IS deficit AND planet_size IS huge THEN opportunity IS bad;
+    RULE 6: IF game_turn IS early AND distance IS close AND ships_surplus IS even AND planet_size IS puny THEN opportunity IS bad;
+    RULE 7: IF game_turn IS early AND distance IS close AND ships_surplus IS even AND planet_size IS small THEN opportunity IS mediocre;
+    RULE 8: IF game_turn IS early AND distance IS close AND ships_surplus IS even AND planet_size IS medium THEN opportunity IS good;
+    RULE 9: IF game_turn IS early AND distance IS close AND ships_surplus IS even AND planet_size IS large THEN opportunity IS good;
+    RULE 10: IF game_turn IS early AND distance IS close AND ships_surplus IS even AND planet_size IS huge THEN opportunity IS excellent;
+    RULE 11: IF game_turn IS early AND distance IS close AND ships_surplus IS surplus AND planet_size IS puny THEN opportunity IS bad;
+    RULE 12: IF game_turn IS early AND distance IS close AND ships_surplus IS surplus AND planet_size IS small THEN opportunity IS mediocre;
+    RULE 13: IF game_turn IS early AND distance IS close AND ships_surplus IS surplus AND planet_size IS medium THEN opportunity IS good;
+    RULE 14: IF game_turn IS early AND distance IS close AND ships_surplus IS surplus AND planet_size IS large THEN opportunity IS excellent;
+    RULE 15: IF game_turn IS early AND distance IS close AND ships_surplus IS surplus AND planet_size IS huge THEN opportunity IS excellent;
+    RULE 16: IF game_turn IS early AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 17: IF game_turn IS early AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS small THEN opportunity IS horrific;
+    RULE 18: IF game_turn IS early AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS medium THEN opportunity IS horrific;
+    RULE 19: IF game_turn IS early AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS large THEN opportunity IS horrific;
+    RULE 20: IF game_turn IS early AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS huge THEN opportunity IS horrific;
+    RULE 21: IF game_turn IS early AND distance IS moderate AND ships_surplus IS even AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 22: IF game_turn IS early AND distance IS moderate AND ships_surplus IS even AND planet_size IS small THEN opportunity IS horrific;
+    RULE 23: IF game_turn IS early AND distance IS moderate AND ships_surplus IS even AND planet_size IS medium THEN opportunity IS bad;
+    RULE 24: IF game_turn IS early AND distance IS moderate AND ships_surplus IS even AND planet_size IS large THEN opportunity IS mediocre;
+    RULE 25: IF game_turn IS early AND distance IS moderate AND ships_surplus IS even AND planet_size IS huge THEN opportunity IS good;
+    RULE 26: IF game_turn IS early AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS puny THEN opportunity IS bad;
+    RULE 27: IF game_turn IS early AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS small THEN opportunity IS mediocre;
+    RULE 28: IF game_turn IS early AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS medium THEN opportunity IS mediocre;
+    RULE 29: IF game_turn IS early AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS large THEN opportunity IS good;
+    RULE 30: IF game_turn IS early AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS huge THEN opportunity IS excellent;
+    RULE 31: IF game_turn IS early AND distance IS far AND ships_surplus IS deficit AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 32: IF game_turn IS early AND distance IS far AND ships_surplus IS deficit AND planet_size IS small THEN opportunity IS horrific;
+    RULE 33: IF game_turn IS early AND distance IS far AND ships_surplus IS deficit AND planet_size IS medium THEN opportunity IS horrific;
+    RULE 34: IF game_turn IS early AND distance IS far AND ships_surplus IS deficit AND planet_size IS large THEN opportunity IS horrific;
+    RULE 35: IF game_turn IS early AND distance IS far AND ships_surplus IS deficit AND planet_size IS huge THEN opportunity IS horrific;
+    RULE 36: IF game_turn IS early AND distance IS far AND ships_surplus IS even AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 37: IF game_turn IS early AND distance IS far AND ships_surplus IS even AND planet_size IS small THEN opportunity IS horrific;
+    RULE 38: IF game_turn IS early AND distance IS far AND ships_surplus IS even AND planet_size IS medium THEN opportunity IS horrific;
+    RULE 39: IF game_turn IS early AND distance IS far AND ships_surplus IS even AND planet_size IS large THEN opportunity IS bad;
+    RULE 40: IF game_turn IS early AND distance IS far AND ships_surplus IS even AND planet_size IS huge THEN opportunity IS bad;
+    RULE 41: IF game_turn IS early AND distance IS far AND ships_surplus IS surplus AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 42: IF game_turn IS early AND distance IS far AND ships_surplus IS surplus AND planet_size IS small THEN opportunity IS horrific;
+    RULE 43: IF game_turn IS early AND distance IS far AND ships_surplus IS surplus AND planet_size IS medium THEN opportunity IS bad;
+    RULE 44: IF game_turn IS early AND distance IS far AND ships_surplus IS surplus AND planet_size IS large THEN opportunity IS bad;
+    RULE 45: IF game_turn IS early AND distance IS far AND ships_surplus IS surplus AND planet_size IS huge THEN opportunity IS mediocre;
+    RULE 46: IF game_turn IS mid AND distance IS close AND ships_surplus IS deficit AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 47: IF game_turn IS mid AND distance IS close AND ships_surplus IS deficit AND planet_size IS small THEN opportunity IS horrific;
+    RULE 48: IF game_turn IS mid AND distance IS close AND ships_surplus IS deficit AND planet_size IS medium THEN opportunity IS bad;
+    RULE 49: IF game_turn IS mid AND distance IS close AND ships_surplus IS deficit AND planet_size IS large THEN opportunity IS bad;
+    RULE 50: IF game_turn IS mid AND distance IS close AND ships_surplus IS deficit AND planet_size IS huge THEN opportunity IS bad;
+    RULE 51: IF game_turn IS mid AND distance IS close AND ships_surplus IS even AND planet_size IS puny THEN opportunity IS bad;
+    RULE 52: IF game_turn IS mid AND distance IS close AND ships_surplus IS even AND planet_size IS small THEN opportunity IS mediocre;
+    RULE 53: IF game_turn IS mid AND distance IS close AND ships_surplus IS even AND planet_size IS medium THEN opportunity IS mediocre;
+    RULE 54: IF game_turn IS mid AND distance IS close AND ships_surplus IS even AND planet_size IS large THEN opportunity IS good;
+    RULE 55: IF game_turn IS mid AND distance IS close AND ships_surplus IS even AND planet_size IS huge THEN opportunity IS excellent;
+    RULE 56: IF game_turn IS mid AND distance IS close AND ships_surplus IS surplus AND planet_size IS puny THEN opportunity IS mediocre;
+    RULE 57: IF game_turn IS mid AND distance IS close AND ships_surplus IS surplus AND planet_size IS small THEN opportunity IS good;
+    RULE 58: IF game_turn IS mid AND distance IS close AND ships_surplus IS surplus AND planet_size IS medium THEN opportunity IS good;
+    RULE 59: IF game_turn IS mid AND distance IS close AND ships_surplus IS surplus AND planet_size IS large THEN opportunity IS excellent;
+    RULE 60: IF game_turn IS mid AND distance IS close AND ships_surplus IS surplus AND planet_size IS huge THEN opportunity IS excellent;
+    RULE 61: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 62: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS small THEN opportunity IS horrific;
+    RULE 63: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS medium THEN opportunity IS bad;
+    RULE 64: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS large THEN opportunity IS bad;
+    RULE 65: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS huge THEN opportunity IS bad;
+    RULE 66: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS even AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 67: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS even AND planet_size IS small THEN opportunity IS horrific;
+    RULE 68: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS even AND planet_size IS medium THEN opportunity IS bad;
+    RULE 69: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS even AND planet_size IS large THEN opportunity IS bad;
+    RULE 70: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS even AND planet_size IS huge THEN opportunity IS mediocre;
+    RULE 71: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 72: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS small THEN opportunity IS bad;
+    RULE 73: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS medium THEN opportunity IS mediocre;
+    RULE 74: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS large THEN opportunity IS good;
+    RULE 75: IF game_turn IS mid AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS huge THEN opportunity IS excellent;
+    RULE 76: IF game_turn IS mid AND distance IS far AND ships_surplus IS deficit AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 77: IF game_turn IS mid AND distance IS far AND ships_surplus IS deficit AND planet_size IS small THEN opportunity IS horrific;
+    RULE 78: IF game_turn IS mid AND distance IS far AND ships_surplus IS deficit AND planet_size IS medium THEN opportunity IS horrific;
+    RULE 79: IF game_turn IS mid AND distance IS far AND ships_surplus IS deficit AND planet_size IS large THEN opportunity IS horrific;
+    RULE 80: IF game_turn IS mid AND distance IS far AND ships_surplus IS deficit AND planet_size IS huge THEN opportunity IS horrific;
+    RULE 81: IF game_turn IS mid AND distance IS far AND ships_surplus IS even AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 82: IF game_turn IS mid AND distance IS far AND ships_surplus IS even AND planet_size IS small THEN opportunity IS horrific;
+    RULE 83: IF game_turn IS mid AND distance IS far AND ships_surplus IS even AND planet_size IS medium THEN opportunity IS horrific;
+    RULE 84: IF game_turn IS mid AND distance IS far AND ships_surplus IS even AND planet_size IS large THEN opportunity IS bad;
+    RULE 85: IF game_turn IS mid AND distance IS far AND ships_surplus IS even AND planet_size IS huge THEN opportunity IS bad;
+    RULE 86: IF game_turn IS mid AND distance IS far AND ships_surplus IS surplus AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 87: IF game_turn IS mid AND distance IS far AND ships_surplus IS surplus AND planet_size IS small THEN opportunity IS horrific;
+    RULE 88: IF game_turn IS mid AND distance IS far AND ships_surplus IS surplus AND planet_size IS medium THEN opportunity IS bad;
+    RULE 89: IF game_turn IS mid AND distance IS far AND ships_surplus IS surplus AND planet_size IS large THEN opportunity IS mediocre;
+    RULE 90: IF game_turn IS mid AND distance IS far AND ships_surplus IS surplus AND planet_size IS huge THEN opportunity IS mediocre;
+    RULE 91: IF game_turn IS late AND distance IS close AND ships_surplus IS deficit AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 92: IF game_turn IS late AND distance IS close AND ships_surplus IS deficit AND planet_size IS small THEN opportunity IS bad;
+    RULE 93: IF game_turn IS late AND distance IS close AND ships_surplus IS deficit AND planet_size IS medium THEN opportunity IS bad;
+    RULE 94: IF game_turn IS late AND distance IS close AND ships_surplus IS deficit AND planet_size IS large THEN opportunity IS mediocre;
+    RULE 95: IF game_turn IS late AND distance IS close AND ships_surplus IS deficit AND planet_size IS huge THEN opportunity IS mediocre;
+    RULE 96: IF game_turn IS late AND distance IS close AND ships_surplus IS even AND planet_size IS puny THEN opportunity IS bad;
+    RULE 97: IF game_turn IS late AND distance IS close AND ships_surplus IS even AND planet_size IS small THEN opportunity IS mediocre;
+    RULE 98: IF game_turn IS late AND distance IS close AND ships_surplus IS even AND planet_size IS medium THEN opportunity IS good;
+    RULE 99: IF game_turn IS late AND distance IS close AND ships_surplus IS even AND planet_size IS large THEN opportunity IS good;
+    RULE 100: IF game_turn IS late AND distance IS close AND ships_surplus IS even AND planet_size IS huge THEN opportunity IS excellent;
+    RULE 101: IF game_turn IS late AND distance IS close AND ships_surplus IS surplus AND planet_size IS puny THEN opportunity IS mediocre;
+    RULE 102: IF game_turn IS late AND distance IS close AND ships_surplus IS surplus AND planet_size IS small THEN opportunity IS good;
+    RULE 103: IF game_turn IS late AND distance IS close AND ships_surplus IS surplus AND planet_size IS medium THEN opportunity IS good;
+    RULE 104: IF game_turn IS late AND distance IS close AND ships_surplus IS surplus AND planet_size IS large THEN opportunity IS excellent;
+    RULE 105: IF game_turn IS late AND distance IS close AND ships_surplus IS surplus AND planet_size IS huge THEN opportunity IS excellent;
+    RULE 106: IF game_turn IS late AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 107: IF game_turn IS late AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS small THEN opportunity IS horrific;
+    RULE 108: IF game_turn IS late AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS medium THEN opportunity IS horrific;
+    RULE 109: IF game_turn IS late AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS large THEN opportunity IS bad;
+    RULE 110: IF game_turn IS late AND distance IS moderate AND ships_surplus IS deficit AND planet_size IS huge THEN opportunity IS bad;
+    RULE 111: IF game_turn IS late AND distance IS moderate AND ships_surplus IS even AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 112: IF game_turn IS late AND distance IS moderate AND ships_surplus IS even AND planet_size IS small THEN opportunity IS horrific;
+    RULE 113: IF game_turn IS late AND distance IS moderate AND ships_surplus IS even AND planet_size IS medium THEN opportunity IS bad;
+    RULE 114: IF game_turn IS late AND distance IS moderate AND ships_surplus IS even AND planet_size IS large THEN opportunity IS bad;
+    RULE 115: IF game_turn IS late AND distance IS moderate AND ships_surplus IS even AND planet_size IS huge THEN opportunity IS bad;
+    RULE 116: IF game_turn IS late AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS puny THEN opportunity IS mediocre;
+    RULE 117: IF game_turn IS late AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS small THEN opportunity IS mediocre;
+    RULE 118: IF game_turn IS late AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS medium THEN opportunity IS good;
+    RULE 119: IF game_turn IS late AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS large THEN opportunity IS excellent;
+    RULE 120: IF game_turn IS late AND distance IS moderate AND ships_surplus IS surplus AND planet_size IS huge THEN opportunity IS excellent;
+    RULE 121: IF game_turn IS late AND distance IS far AND ships_surplus IS deficit AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 122: IF game_turn IS late AND distance IS far AND ships_surplus IS deficit AND planet_size IS small THEN opportunity IS horrific;
+    RULE 123: IF game_turn IS late AND distance IS far AND ships_surplus IS deficit AND planet_size IS medium THEN opportunity IS horrific;
+    RULE 124: IF game_turn IS late AND distance IS far AND ships_surplus IS deficit AND planet_size IS large THEN opportunity IS horrific;
+    RULE 125: IF game_turn IS late AND distance IS far AND ships_surplus IS deficit AND planet_size IS huge THEN opportunity IS bad;
+    RULE 126: IF game_turn IS late AND distance IS far AND ships_surplus IS even AND planet_size IS puny THEN opportunity IS horrific;
+    RULE 127: IF game_turn IS late AND distance IS far AND ships_surplus IS even AND planet_size IS small THEN opportunity IS horrific;
+    RULE 128: IF game_turn IS late AND distance IS far AND ships_surplus IS even AND planet_size IS medium THEN opportunity IS bad;
+    RULE 129: IF game_turn IS late AND distance IS far AND ships_surplus IS even AND planet_size IS large THEN opportunity IS bad;
+    RULE 130: IF game_turn IS late AND distance IS far AND ships_surplus IS even AND planet_size IS huge THEN opportunity IS bad;
+    RULE 131: IF game_turn IS late AND distance IS far AND ships_surplus IS surplus AND planet_size IS puny THEN opportunity IS bad;
+    RULE 132: IF game_turn IS late AND distance IS far AND ships_surplus IS surplus AND planet_size IS small THEN opportunity IS bad;
+    RULE 133: IF game_turn IS late AND distance IS far AND ships_surplus IS surplus AND planet_size IS medium THEN opportunity IS mediocre;
+    RULE 134: IF game_turn IS late AND distance IS far AND ships_surplus IS surplus AND planet_size IS large THEN opportunity IS good;
+    RULE 135: IF game_turn IS late AND distance IS far AND ships_surplus IS surplus AND planet_size IS huge THEN opportunity IS good;
 
 END_RULEBLOCK
 
