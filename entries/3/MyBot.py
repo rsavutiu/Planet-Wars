@@ -33,6 +33,8 @@ ATTACK_LIMIT = 8
 max_distance = 0
 game_turn = 0
 
+max_planet_ships = 0
+
 def compute_planet_distances(pw):
     global max_planet_size, max_distance, nearestNeighbors
     planets = sorted(pw.Planets(), key=lambda x: x.PlanetID())
@@ -61,7 +63,7 @@ def compute_planet_distances(pw):
     return actual_distances
 
 
-def invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn, ignored_planets, win_ratio):
+def invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn, ignored_planets, win_ratio, max_ship_planets):
     global max_planet_size, max_distance
     try:
 
@@ -71,7 +73,7 @@ def invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn, ignored
 
 
         targets_of_opportunity = calculate_all_opportunities(
-            my_planet, pw, ignored_planets, total_invasion_ships_for_planet)
+            my_planet, pw, ignored_planets, total_invasion_ships_for_planet, max_ship_planets)
 
         opportunity_targets = reversed(sorted(targets_of_opportunity, key=targets_of_opportunity.get))
 
@@ -163,13 +165,22 @@ def DoTurn(pw):
     enemy_size = 0
     my_size = 0
     global game_turn
+    global max_planet_ships
+
+    max_planet_ships = 0
 
     for planet in my_planets:
         my_size += planet.NumShips()
+        if planet.NumShips() > max_planet_ships:
+            max_planet_ships = planet.NumShips()
+        #endif
     # endfor
 
     for planet in enemy_planets:
         enemy_size += planet.NumShips()
+        if planet.NumShips() > max_planet_ships:
+            max_planet_ships = planet.NumShips()
+        #endif
     # endfor
 
     if (enemy_size <= 0) or (my_size <= 0):
@@ -201,7 +212,7 @@ def DoTurn(pw):
                 #       "Available for invasion: {2} ships"
                 #       .format(my_planet.PlanetID(), my_planet.NumShips(), total_invasion_ships_for_planet))
                 ignored_planets = invade_planets(
-                    my_planet, pw, total_invasion_ships_for_planet, game_turn, ignored_planets, winRatio)
+                    my_planet, pw, total_invasion_ships_for_planet, game_turn, ignored_planets, winRatio, max_planet_ships)
                 debug("ignored planets  {0}".format(len(ignored_planets)))
             else:
                 debug("Planet {0} with {1} ships cannot attack, it will be overrun soon...".format(
@@ -220,23 +231,23 @@ def DoTurn(pw):
         raise e
 
 
-def calculate_all_opportunities(my_planet, pw, ignored_planets, total_invasion_ships_for_planet):
+def calculate_all_opportunities(my_planet, pw, ignored_planets, total_invasion_ships_for_planet, max_ship_planets):
     targets_of_opportunity = {}
     for nearest_neighbour_ids in nearestNeighbors[my_planet.PlanetID()]:
         nearest_neighbour = pw.GetPlanet(nearest_neighbour_ids[0])
 
         if my_planet.PlanetID() != nearest_neighbour.PlanetID() and not ignored_planets.count(nearest_neighbour.PlanetID()) > 0:
             distance_to_planet = distances[my_planet.PlanetID()][nearest_neighbour.PlanetID()]
-            necessary_ships_to_invade = utils.PlanetHelper.get_necessary_invasion_ships(nearest_neighbour,
-                                                                                        distance_to_planet, pw,
-                                                                                        max_distance)
+            necessary_ships_to_invade = utils.PlanetHelper.get_necessary_invasion_ships(
+                nearest_neighbour, distance_to_planet, pw, max_distance)
 
             distance_percentage = distance_to_planet * 100.0 / max_distance
+            fleet_percentage = total_invasion_ships_for_planet * 100.0 / max_ship_planets
 
             if necessary_ships_to_invade > 0:
-                opportunity = fuzzy_logic.FuzzyFCL.crisp_output(turn, distance_percentage,
-                                                     total_invasion_ships_for_planet - necessary_ships_to_invade,
-                                                     (nearest_neighbour.GrowthRate() * 100.0 / max_planet_size))
+                opportunity = fuzzy_logic.FuzzyFCL.crisp_output(
+                    turn, distance_percentage, total_invasion_ships_for_planet - necessary_ships_to_invade,
+                    nearest_neighbour.GrowthRate() * 100.0 / max_planet_size, fleet_percentage)
 
                 opportunity *= (4 - distance_percentage/100.0) / 4.0
 

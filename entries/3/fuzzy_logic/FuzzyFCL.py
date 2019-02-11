@@ -44,7 +44,7 @@ opportunity = ctrl.ControlSystemSimulation(opportunity_ctrl)
 #     return fuzzy_granular_1_results_dict.a[(game_time, distance_percentage, ships_surplus, planet_size_percentage)]
 
 
-def crisp_output(game_time, distance_percentage, ships_surplus, planet_size_percentage):
+def crisp_output(game_time, distance_percentage, ships_surplus, planet_size_percentage, fleet_size_percentage):
     # debug("game time: {0}\n distance_percentage: {1}\n ships_surplus: {2}\n planet_size: {3}\n".format(
     #       game_time, distance_percentage, ships_surplus, planet_size_percentage))
 
@@ -72,6 +72,7 @@ def crisp_output(game_time, distance_percentage, ships_surplus, planet_size_perc
     opportunity.input['distance'] = distance_percentage
     opportunity.input['ships_surplus'] = ships_surplus
     opportunity.input['planet_size'] = planet_size_percentage
+    opportunity.input['fleet_size'] = fleet_size_percentage
 
     opportunity.compute()
     ret = opportunity.output['opportunity']

@@ -21,3 +21,5 @@ venv
 *.iml
 
 *.log
+*.iml
+*.xml
