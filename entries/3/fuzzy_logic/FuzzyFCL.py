@@ -1,46 +1,53 @@
 import time
 import os
 import sys
-import numpy
-import fuzzy_granular_1_results_dict
+import skfuzzy.control as ctrl
 from Log import debug
 from fcl_parser import FCLParser
 
-SHIPS_MAX_LIMIT = 20
-SHIPS_MIN_LIMIT = -10
-DISTANCE_MAX_LIMIT = 10
+SHIPS_MAX_LIMIT = 100
+SHIPS_MIN_LIMIT = -100
+DISTANCE_MAX_LIMIT = 100
 GAME_TIME_LIMIT = 201
-PLANET_SIZE_MAX_LIMIT = 10
+PLANET_SIZE_MAX_LIMIT = 100
 
 PICKLED_DICT = "fuzzy_granular_ships_surplus_results_dict.py"
-FCL_RULES_FILE = "invasion_opportunity.fcl"
+FCL_RULES_FILE = "invasion_opportunity_2.fcl"
 loaded_dict = None
 
-def fuzzy_crisp_hashtable(game_time, distance_percentage, ships_surplus, planet_size_percentage):
-    if game_time < 0:
-        game_time = 0
-    elif game_time >= GAME_TIME_LIMIT:
-        game_time = GAME_TIME_LIMIT - 1
-    # endif
+p = FCLParser()  # Create the parser
+p.read_fcl_file(FCL_RULES_FILE)  # Parse a file
+opportunity_ctrl = ctrl.ControlSystem(p.rules)
+opportunity = ctrl.ControlSystemSimulation(opportunity_ctrl)
 
-    if distance_percentage >= DISTANCE_MAX_LIMIT:
-        distance_percentage = DISTANCE_MAX_LIMIT - 1
-    # endif
-
-    if ships_surplus < SHIPS_MIN_LIMIT:
-        ships_surplus = SHIPS_MIN_LIMIT
-    elif ships_surplus > SHIPS_MAX_LIMIT:
-        ships_surplus = SHIPS_MAX_LIMIT
-    #endif
-
-    if planet_size_percentage >= PLANET_SIZE_MAX_LIMIT:
-        planet_size_percentage = PLANET_SIZE_MAX_LIMIT
-    #endif
-
-    return fuzzy_granular_1_results_dict.a[(game_time, distance_percentage, ships_surplus, planet_size_percentage)]
+# def fuzzy_crisp_hashtable(game_time, distance_percentage, ships_surplus, planet_size_percentage):
+#     if game_time < 0:
+#         game_time = 0
+#     elif game_time >= GAME_TIME_LIMIT:
+#         game_time = GAME_TIME_LIMIT - 1
+#     # endif
+#
+#     if distance_percentage >= DISTANCE_MAX_LIMIT:
+#         distance_percentage = DISTANCE_MAX_LIMIT - 1
+#     # endif
+#
+#     if ships_surplus < SHIPS_MIN_LIMIT:
+#         ships_surplus = SHIPS_MIN_LIMIT
+#     elif ships_surplus > SHIPS_MAX_LIMIT:
+#         ships_surplus = SHIPS_MAX_LIMIT
+#     #endif
+#
+#     if planet_size_percentage >= PLANET_SIZE_MAX_LIMIT:
+#         planet_size_percentage = PLANET_SIZE_MAX_LIMIT
+#     #endif
+#
+#     return fuzzy_granular_1_results_dict.a[(game_time, distance_percentage, ships_surplus, planet_size_percentage)]
 
 
 def crisp_output(game_time, distance_percentage, ships_surplus, planet_size_percentage):
+    # debug("game time: {0}\n distance_percentage: {1}\n ships_surplus: {2}\n planet_size: {3}\n".format(
+    #       game_time, distance_percentage, ships_surplus, planet_size_percentage))
+
     global opportunity, opportunity_ctrl
 
     if ships_surplus > SHIPS_MAX_LIMIT:
@@ -69,15 +76,12 @@ def crisp_output(game_time, distance_percentage, ships_surplus, planet_size_perc
     opportunity.compute()
     ret = opportunity.output['opportunity']
     # debug("Calculated for [time {:4}] [distance {:5}] [ships {:5}] --> {:10}"
-    # .format(game_time, distance, ships_surplus, ret))
+    # .format(game_time, distance_percentage, ships_surplus, ret))
     return ret
 
 
-
-
 if __name__ == "__main__":
-    import skfuzzy.control as ctrl
-    import numpy as np
+
     start_timestamp = time.time()
     lines = []
     lines.append("a = {\n")

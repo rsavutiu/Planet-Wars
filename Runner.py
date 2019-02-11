@@ -11,7 +11,7 @@ def runGame(player1, player2, map, game_number):
     game = open(gameFileName, 'w')
 
     p = subprocess.Popen(['java', '-jar', 'tools/PlayGame.jar', map, \
-                          '1000', '1000', 'log.txt', \
+                          '60000', '200', 'log.txt', \
                           player1, player2], stderr=status, stdout=game)
 
     p.wait()
@@ -37,7 +37,8 @@ def main():
     p1 = sys.argv[1]
     p2 = sys.argv[2]
     p1wins = 0
-    for g in range(10, 20):
+    for g in range(1, 100):
+        #print "run game ", g
         if runGame(p1,p2,'maps/map'+str(g)+'.txt', g) == 1:
             p1wins += 1
             print('won on maps/map' + str(g) + '.txt')
