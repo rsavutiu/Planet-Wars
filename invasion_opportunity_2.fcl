@@ -54,16 +54,16 @@ FUZZIFY ships_surplus			// Fuzzify input variable 'ships_surplus': { 'deficit', 
 	TERM deficit := (-100, 1) (-30, 1)  (1, 0);
 	TERM even := (-30, 0) (1, 1) (5, 1) (15, 0);
 	TERM surplus := (5, 0) (15, 1) (100, 1);
-  RANGE := (-100 .. 100) WITH 1; // Added range for ships surplus. We need even for even at least a couple of ships there...
+  RANGE := (-100 .. 101) WITH 1; // Added range for ships surplus. We need even for even at least a couple of ships there...
 END_FUZZIFY
 
 FUZZIFY planet_size			// Fuzzify input variable 'planet_size': { 'puny', 'small', 'medium', 'large', 'huge' }
 	TERM puny := (0, 1) (6, 1) (10, 0);
 	TERM small := (6, 0) (10, 1) (15, 1) (25, 0);
 	TERM medium := (15, 0) (25, 1) (35, 1) (45, 0);
-	TERM large := (35, 0) (45, 1) (60, 1) (70, 0);
-	TERM huge := (60, 0) (80, 1) (100, 1);
-  RANGE := (0 .. 10.1) WITH 0.1; // Added range for planet_size surplus( percentage of the biggest planet size)
+	TERM large := (35, 0) (45, 1) (60, 1) (75, 0);
+	TERM huge := (60, 0) (75, 1) (100, 1);
+  RANGE := (0 .. 101) WITH 1; // Added range for planet_size surplus( percentage of the biggest planet size)
 END_FUZZIFY
 
 DEFUZZIFY opportunity			// Defuzzify output variable 'opportunity' : {'excellent', 'good', 'mediocre', 'bad', 'horrific'}

@@ -4,6 +4,7 @@ import sys
 import skfuzzy.control as ctrl
 from Log import debug
 from fcl_parser import FCLParser
+import cPickle
 
 SHIPS_MAX_LIMIT = 100
 SHIPS_MIN_LIMIT = -100
@@ -11,14 +12,24 @@ DISTANCE_MAX_LIMIT = 100
 GAME_TIME_LIMIT = 201
 PLANET_SIZE_MAX_LIMIT = 100
 
+
+
 PICKLED_DICT = "fuzzy_granular_ships_surplus_results_dict.py"
+PICKLED_FUZZY_CONTROL_SYSTEM = "fuzzy_control_system.fuzzy"
 FCL_RULES_FILE = "invasion_opportunity_2.fcl"
 loaded_dict = None
 
-p = FCLParser()  # Create the parser
-p.read_fcl_file(FCL_RULES_FILE)  # Parse a file
-opportunity_ctrl = ctrl.ControlSystem(p.rules)
-opportunity = ctrl.ControlSystemSimulation(opportunity_ctrl)
+if os.path.isfile(PICKLED_FUZZY_CONTROL_SYSTEM):
+    with open(PICKLED_FUZZY_CONTROL_SYSTEM, 'r') as f:
+        opportunity = cPickle.load(f)
+else:
+    p = FCLParser()  # Create the parser
+    p.read_fcl_file(FCL_RULES_FILE)  # Parse a file
+    opportunity_ctrl = ctrl.ControlSystem(p.rules)
+    opportunity = ctrl.ControlSystemSimulation(opportunity_ctrl)
+    with open(PICKLED_FUZZY_CONTROL_SYSTEM, 'w') as f:
+        cPickle.dump(opportunity, f, 2)
+#endif
 
 # def fuzzy_crisp_hashtable(game_time, distance_percentage, ships_surplus, planet_size_percentage):
 #     if game_time < 0:
@@ -50,10 +61,10 @@ def crisp_output(game_time, distance_percentage, ships_surplus, planet_size_perc
 
     global opportunity, opportunity_ctrl
 
-    if ships_surplus > SHIPS_MAX_LIMIT:
-        ships_surplus = SHIPS_MAX_LIMIT
-    elif ships_surplus < SHIPS_MIN_LIMIT:
-        ships_surplus = SHIPS_MIN_LIMIT
+    if ships_surplus >= SHIPS_MAX_LIMIT:
+        ships_surplus = SHIPS_MAX_LIMIT - 1
+    elif ships_surplus <= SHIPS_MIN_LIMIT:
+        ships_surplus = SHIPS_MIN_LIMIT + 1
     #endif
 
     if distance_percentage > DISTANCE_MAX_LIMIT:
@@ -63,7 +74,7 @@ def crisp_output(game_time, distance_percentage, ships_surplus, planet_size_perc
     #endif
 
     if game_time >= GAME_TIME_LIMIT:
-        game_time = GAME_TIME_LIMIT-1
+        game_time = GAME_TIME_LIMIT - 1
     elif game_time <= 0:
         game_time = 0
     #endif

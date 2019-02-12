@@ -27,7 +27,6 @@ distances = {}
 nearestNeighbors = {}
 max_planet_size = 1
 universe_max_space = None
-turn = 0
 actual_distances = []
 ATTACK_LIMIT = 8
 max_distance = 0
@@ -72,7 +71,7 @@ def invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn, ignored
                       len(nearestNeighbors[my_planet.PlanetID()])))
 
 
-        targets_of_opportunity = calculate_all_opportunities(
+        targets_of_opportunity = calculate_all_opportunities(turn,
             my_planet, pw, ignored_planets, total_invasion_ships_for_planet, max_ship_planets)
 
         opportunity_targets = reversed(sorted(targets_of_opportunity, key=targets_of_opportunity.get))
@@ -103,7 +102,7 @@ def invade_planets(my_planet, pw, total_invasion_ships_for_planet, turn, ignored
             #endif
             limit_index += 1
 
-            if targets_of_opportunity[opportunity_target] < 0.10 and opportunity_target.Owner() != 1 and win_ratio < 5:
+            if targets_of_opportunity[opportunity_target] < 0.12 and opportunity_target.Owner() != 1 and win_ratio < 5:
                 if opportunity_target.Owner != 1:
                     debug("finished own defense. better wait opportunity is: {0}. target was: {1} with {2} ships. "
                           "distance percentage to max distance ever: {3}".format(
@@ -231,7 +230,7 @@ def DoTurn(pw):
         raise e
 
 
-def calculate_all_opportunities(my_planet, pw, ignored_planets, total_invasion_ships_for_planet, max_ship_planets):
+def calculate_all_opportunities(turn, my_planet, pw, ignored_planets, total_invasion_ships_for_planet, max_ship_planets):
     targets_of_opportunity = {}
     for nearest_neighbour_ids in nearestNeighbors[my_planet.PlanetID()]:
         nearest_neighbour = pw.GetPlanet(nearest_neighbour_ids[0])
@@ -246,8 +245,8 @@ def calculate_all_opportunities(my_planet, pw, ignored_planets, total_invasion_s
 
             if necessary_ships_to_invade > 0:
                 opportunity = fuzzy_logic.FuzzyFCL.crisp_output(
-                    turn, distance_percentage, total_invasion_ships_for_planet - necessary_ships_to_invade,
-                    nearest_neighbour.GrowthRate() * 100.0 / max_planet_size, fleet_percentage)
+                    turn, int(distance_percentage), total_invasion_ships_for_planet - necessary_ships_to_invade,
+                    nearest_neighbour.GrowthRate() * 100.0 / max_planet_size, int(fleet_percentage))
 
                 opportunity *= (4 - distance_percentage/100.0) / 4.0
 
@@ -255,78 +254,6 @@ def calculate_all_opportunities(my_planet, pw, ignored_planets, total_invasion_s
                     opportunity *= 1.07
                 elif nearest_neighbour.Owner() == 1:
                     opportunity *= 1.25
-
-                # if game_turn < 30:
-                #     if necessary_ships_to_invade > 120:
-                #         opportunity *= 0.9
-                #     if necessary_ships_to_invade > 100:
-                #         opportunity *= 0.91
-                #     if necessary_ships_to_invade > 80:
-                #         opportunity *= 0.92
-                #     elif necessary_ships_to_invade > 70:
-                #         opportunity *= 0.93
-                #     elif necessary_ships_to_invade > 50:
-                #         opportunity *= 0.94
-                #     elif necessary_ships_to_invade > 30:
-                #         opportunity *= 0.95
-                #     elif necessary_ships_to_invade > 20:
-                #         opportunity *= 0.96
-                #     elif necessary_ships_to_invade > 15:
-                #         opportunity *= 0.97
-                #     elif necessary_ships_to_invade > 10:
-                #         opportunity *= 0.98
-                #     elif necessary_ships_to_invade > 5:
-                #         opportunity *= 0.99
-                #     #endif
-
-                # if turn < 5:
-                #     if nearest_neighbour.Owner() == 2:
-                #         opportunity *= 0.5
-                #     elif nearest_neighbour.Owner() == 0:
-                #         opportunity *= 1
-                #     # endif
-                # elif turn < 10:
-                #     if nearest_neighbour.Owner() == 2:
-                #         opportunity *= 0.55
-                #     elif nearest_neighbour.Owner() == 0:
-                #         opportunity *= 0.95
-                #     # endif
-                # elif turn < 15:
-                #     if nearest_neighbour.Owner() == 2:
-                #         opportunity *= 0.6
-                #     elif nearest_neighbour.Owner() == 0:
-                #         opportunity *= 0.9
-                #     # endif
-                # elif turn < 20:
-                #     if nearest_neighbour.Owner() == 2:
-                #         opportunity *= 0.7
-                #     elif nearest_neighbour.Owner() == 0:
-                #         opportunity *= 0.85
-                #     # endif
-                # elif turn < 25:
-                #     if nearest_neighbour.Owner() == 2:
-                #         opportunity *= 0.8
-                #     elif nearest_neighbour.Owner() == 0:
-                #         opportunity *= 0.8
-                #     # endif
-                # elif turn < 30:
-                #     if nearest_neighbour.Owner() == 2:
-                #         opportunity *= 0.9
-                #     elif nearest_neighbour.Owner() == 0:
-                #         opportunity *= 0.75
-                #     # endif
-                # elif turn < 35:
-                #     if nearest_neighbour.Owner() == 2:
-                #         opportunity *= 0.95
-                #     elif nearest_neighbour.Owner() == 0:
-                #         opportunity *= 0.7
-                #     # endif
-                # else:
-                #     if nearest_neighbour.Owner() == 2:
-                #         opportunity *= 1
-                #     elif nearest_neighbour.Owner() == 0:
-                #         opportunity *= 0.675
-                #     # endif
 
                 targets_of_opportunity[nearest_neighbour] = opportunity
 
