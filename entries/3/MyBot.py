@@ -248,7 +248,7 @@ def calculate_all_opportunities(turn, my_planet, pw, ignored_planets, total_inva
                     turn, int(distance_percentage), total_invasion_ships_for_planet - necessary_ships_to_invade,
                     nearest_neighbour.GrowthRate() * 100.0 / max_planet_size, int(fleet_percentage))
 
-                opportunity *= (4 - distance_percentage/100.0) / 4.0
+                opportunity *= (11 - distance_percentage/100.0) / 11.0
 
                 if nearest_neighbour.Owner() == 2:
                     opportunity *= 1.07
@@ -256,16 +256,17 @@ def calculate_all_opportunities(turn, my_planet, pw, ignored_planets, total_inva
                     opportunity *= 1.25
 
                 targets_of_opportunity[nearest_neighbour] = opportunity
+                debug("processed neighbor {0} planet {1} currently contains {2} ships "
+                      " at distance {3} ({4}%). Necessary ships to take: {5}. Opp: {6}"
+                      .format(utils.PlanetHelper.get_planet_type(nearest_neighbour), nearest_neighbour.PlanetID(),
+                              nearest_neighbour.NumShips(), distance_percentage,
+                              distance_to_planet, necessary_ships_to_invade, opportunity))
 
             else:
                 debug("Ignoring planet {0} with {1} ships on it. It's fine.".format(
                     nearest_neighbour.PlanetID(), nearest_neighbour.NumShips()))
                 ignored_planets.append(nearest_neighbour.PlanetID())
-                # debug("processing neighbor {0} planet {1} currently contains {2} ships with "
-                #       " at distance {3}. Necessary ships to take: {4}. Opp: {5}"
-                #       .format(get_planet_type(nearest_neighbour), nearest_neighbour.PlanetID(),
-                #               nearest_neighbour.NumShips(),
-                #               distance_to_planet, necessary_ships_to_invade, opportunity))
+
             # endif
         # endif
     # endfor
