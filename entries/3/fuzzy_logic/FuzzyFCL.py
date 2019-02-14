@@ -54,8 +54,8 @@ else:
 
 
 def crisp_output(game_time, distance_percentage, ships_surplus, planet_size_percentage, fleet_size_percentage):
-    debug("game time: {0}\n distance_percentage: {1}\n ships_surplus: {2}\n planet_size: {3}\n".format(
-           game_time, distance_percentage, ships_surplus, planet_size_percentage))
+    # debug("game time: {0}\n distance_percentage: {1}\n ships_surplus: {2}\n planet_size: {3}\n".format(
+    #        game_time, distance_percentage, ships_surplus, planet_size_percentage))
 
     global opportunity, opportunity_ctrl
 
