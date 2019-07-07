@@ -1,10 +1,11 @@
-import time
+import cPickle
 import os
-import sys
+import time
+
 import skfuzzy.control as ctrl
+
 from Log import debug
 from fcl_parser import FCLParser
-import cPickle
 
 SHIPS_MAX_LIMIT = 100
 SHIPS_MIN_LIMIT = -100
@@ -54,8 +55,9 @@ else:
 
 
 def crisp_output(game_time, distance_percentage, ships_surplus, planet_size_percentage, fleet_size_percentage):
-    debug("game time: {0}\n distance_percentage: {1}\n ships_surplus: {2}\n planet_size: {3}\n".format(
-           game_time, distance_percentage, ships_surplus, planet_size_percentage))
+    debug("game time: {0}\n distance_percentage: {1}\n ships_surplus: {2}\n"
+          "planet_size: {3}\n fleet size: {4}\n".format(
+           game_time, distance_percentage, ships_surplus, planet_size_percentage, fleet_size_percentage))
 
     global opportunity, opportunity_ctrl
 
@@ -93,34 +95,34 @@ def crisp_output(game_time, distance_percentage, ships_surplus, planet_size_perc
 if __name__ == "__main__":
 
     start_timestamp = time.time()
-    for i in range (101, 0, -1):
+    for i in range (0, 101, 1):
         print i
-        result = crisp_output(0, i, 0, 20, 0)
+        result = crisp_output(9, 9, -120, 0, i)
         print i, " = ", result
-    for game_time_index in range(0, GAME_TIME_LIMIT+1):
-        print "game time index:", game_time_index
-        for distance_index in range(0, DISTANCE_MAX_LIMIT + 1):
-            print "distance index:", distance_index
-            for ships_surplus_index in range(SHIPS_MIN_LIMIT, SHIPS_MAX_LIMIT+1):
-                print "ships surplus index:", ships_surplus_index
-                for planet_size_percentage in range(0, PLANET_SIZE_MAX_LIMIT + 1):
-                    print "planet size index:", planet_size_percentage
-                    for fleet_size_percentage in range(0, PLANET_SIZE_MAX_LIMIT + 1):
-                        try:
-                            result = crisp_output(game_time_index, distance_index,
-                                                  ships_surplus_index, planet_size_percentage, fleet_size_percentage)
-                            # line = "{0} : {1},\n".format(
-                            #     (game_time_index, distance_index, ships_surplus_index, planet_size_percentage, fleet_size_percentage), result)
-                            #print line
-                        except Exception, e:
-                            print "ships", ships_surplus_index
-                            print "planet size", planet_size_percentage
-                            print "fleet size", fleet_size_percentage
-                            exc_type, exc_obj, exc_tb = sys.exc_info()
-                            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                            debug(str(exc_type) + str(fname) + str(exc_tb.tb_lineno))
-                            raise e
-            #endfor
-        #endfor
-    #endfor
+    # for game_time_index in range(0, GAME_TIME_LIMIT+1):
+    #     print "game time index:", game_time_index
+    #     for distance_index in range(0, DISTANCE_MAX_LIMIT + 1):
+    #         print "distance index:", distance_index
+    #         for ships_surplus_index in range(SHIPS_MIN_LIMIT, SHIPS_MAX_LIMIT+1):
+    #             print "ships surplus index:", ships_surplus_index
+    #             for planet_size_percentage in range(0, PLANET_SIZE_MAX_LIMIT + 1):
+    #                 print "planet size index:", planet_size_percentage
+    #                 for fleet_size_percentage in range(0, PLANET_SIZE_MAX_LIMIT + 1):
+    #                     try:
+    #                         result = crisp_output(game_time_index, distance_index,
+    #                                               ships_surplus_index, planet_size_percentage, fleet_size_percentage)
+    #                         # line = "{0} : {1},\n".format(
+    #                         #     (game_time_index, distance_index, ships_surplus_index, planet_size_percentage, fleet_size_percentage), result)
+    #                         #print line
+    #                     except Exception, e:
+    #                         print "ships", ships_surplus_index
+    #                         print "planet size", planet_size_percentage
+    #                         print "fleet size", fleet_size_percentage
+    #                         exc_type, exc_obj, exc_tb = sys.exc_info()
+    #                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+    #                         debug(str(exc_type) + str(fname) + str(exc_tb.tb_lineno))
+    #                         raise e
+    #         #endfor
+    #     #endfor
+    # #endfor
 #endif

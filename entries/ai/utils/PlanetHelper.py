@@ -44,8 +44,8 @@ def get_necessary_invasion_ships(foreign_planet, distance_to_planet, pw, max_dis
     planet_ships = foreign_planet.NumShips()
     turn = 0
     total_own_ships_coming_in = 0
-    planet_ships_need_to_leave_now = 0
-    while turn <= max_distance + 1:
+    # planet_ships_need_to_leave_now = 0
+    while turn <= turn_until_my_fleet_arrives + 1:
         enemy_ships_coming_in = 0
         own_ships_coming_in = 0
 
@@ -103,8 +103,8 @@ def get_necessary_invasion_ships(foreign_planet, distance_to_planet, pw, max_dis
                 planet_ships = planet_ships - own_ships_coming_in
             # endif
 
-        if planet_owner != 1 and turn == turn_until_my_fleet_arrives:
-            planet_ships_need_to_leave_now = planet_ships + 1
+        # if planet_owner != 1 and turn == turn_until_my_fleet_arrives:
+        #     planet_ships_need_to_leave_now = planet_ships + 1
     # endwhile
 
     if planet_owner == 1:
@@ -115,7 +115,7 @@ def get_necessary_invasion_ships(foreign_planet, distance_to_planet, pw, max_dis
 
     # debug("Get necessary invasion ships for planet {0} at distance {1} with currently {2} ships. We have already {3} ships coming in. We need to send {4} more ships"
     #       .format(foreign_planet.PlanetID(), distance_to_planet, foreign_planet.NumShips(), total_own_ships_coming_in, planet_ships + 1))
-    return max(planet_ships + 1, planet_ships_need_to_leave_now)
+    return planet_ships + 1
 
 
 def get_available_invasion_ships(my_planet, pw):
@@ -143,3 +143,18 @@ def get_available_invasion_ships(my_planet, pw):
 
     # debug("invade with max {0} out of {1}".format(invasion_ships, my_planet.NumShips()))
     return invasion_ships
+
+
+def get_needed_defense_ships(my_planet, pw):
+    assert (my_planet.Owner() == 1)  # assert planet is mine!
+    incoming_fleet_set_of_turns = set([fleet.TurnsRemaining() for fleet in
+                                       FleetsHelper.get_incoming_opponent_fleets(my_planet.PlanetID(), pw)])
+
+    for turn in incoming_fleet_set_of_turns:
+        if turn > 0:
+            ships_here_on_turn_x = get_ships_on_planet_on_turn_x(my_planet, turn, pw)
+
+            if ships_here_on_turn_x < 0:
+                return turn, 0 - ships_here_on_turn_x #we need this many ships in this many turns!
+    #endfor
+    return None

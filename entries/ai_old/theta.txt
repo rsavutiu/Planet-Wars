@@ -1,0 +1,8 @@
+0.24499999 0.44099998 -0.049 -0.196 -0.48999998 
+
+
+growth rate
+distance to my center
+distance to enemy center
+ships on planet to be invaded
+planet to be invaded owner (neutral or enemy) (using owner-1 where enemy is 2, neutral is 0 - mine 1)
