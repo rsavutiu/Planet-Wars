@@ -3,20 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from RunnerOneTime import runGame, usage
 
-NUMBER_OF_FEATURES = 12
+NUMBER_OF_FEATURES = 7
 MAP_NUMBER = 10
 SWARM_SIZE = 15
 costs = []
 MAX_ITERATIONS = 10
 
 p2_list = [
-            #"java -jar example_bots/DualBot.jar",
+            "java -jar example_bots/DualBot.jar",
             # "java example_bots/BullyBot.java",
-            #"java -jar example_bots/BullyBot.jar",
+            "java -jar example_bots/BullyBot.jar",
             #"java -jar example_bots/ProspectBot.jar", DOESN"T WORK
-            #"java -jar example_bots/RageBot.jar",
-            "python entries/2/MyBot.py",
-            "python entries/3/MyBot.py",
+            "java -jar example_bots/RageBot.jar",
+            # "python entries/2/MyBot.py",
+            # "python entries/3/MyBot.py",
             #"java -jar example_bots/ZerlingRush.jar",
         ]
 
@@ -47,12 +47,12 @@ def banana(theta):
                     result = int(turn / 3.)#0 - 33
                 # endif
                 print "result: ", result
-                result_to_add = (200 - 2 * result) / (100.0 * MAP_NUMBER * len(p2_list))
+                result_to_add = (100. - result) / (100. * MAP_NUMBER * len(p2_list))
                 print "cost/loss to add:", result_to_add
                 cost += result_to_add
 
             except Exception, e:
-                cost += 2.0
+                cost += 1.0
                 print "Found error on map {0}. bot {1}".format(map_name, p2), str(e)
         #endfor
     #endfor
@@ -63,8 +63,11 @@ def banana(theta):
 
 
 if __name__=="__main__":
-    lb = [-5] * NUMBER_OF_FEATURES
-    ub = [5] * NUMBER_OF_FEATURES
+    lb = [-1] * (NUMBER_OF_FEATURES - 1)
+    ub = [1] * (NUMBER_OF_FEATURES - 1)
+
+    lb.append(0)
+    ub.append(1)
 
     xopt, fopt = pso(banana, lb, ub, maxiter=MAX_ITERATIONS, swarmsize=SWARM_SIZE)
     print xopt, fopt
@@ -79,7 +82,7 @@ if __name__=="__main__":
         for j in range(i*SWARM_SIZE, (i+1)*SWARM_SIZE):
             cost += costs[j]
         #endfor
-        costs_per_iteration.add(cost)
+        costs_per_iteration.append(cost)
     #endfor
 
     plt.scatter(range(0, len(costs_per_iteration)), costs_per_iteration, c='b')

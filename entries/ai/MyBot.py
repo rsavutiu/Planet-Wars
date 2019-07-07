@@ -19,10 +19,10 @@ import numpy
 import utils.PlanetHelper
 import utils.FleetsHelper
 import utils.CenterOfGravity
-import utils.Utils
+from utils.Utils import *
 
 distances = {}
-nearestNeighbors = {}
+nearest_neighbors = {}
 max_planet_size = 1
 universe_max_space = None
 actual_distances = []
@@ -34,40 +34,13 @@ theta = []
 NUMBER_OF_FEATURES = 7
 
 
-def compute_planet_distances_and_max_planet_size(pw):
-    global max_planet_size, max_distance, nearestNeighbors
-    planets = sorted(pw.Planets(), key=lambda x: x.PlanetID())
-    for p in planets:
-        if p.GrowthRate() > max_planet_size:
-            max_planet_size = p.GrowthRate()
-        # endif
-        dists = []
-        distances[p.PlanetID()] = {}
-        for q in planets:
-            if q.PlanetID() != p.PlanetID():
-                dx = p.X() - q.X()
-                dy = p.Y() - q.Y()
-                actual_distance = math.sqrt(dx * dx + dy * dy)
-                x = (q.PlanetID(), actual_distance)
-                dists.append(x)
-                actual_distances.append(actual_distance)
-                if actual_distance > max_distance:
-                    max_distance = actual_distance
-                # endif
-                distances[p.PlanetID()][q.PlanetID()] = actual_distance
-            # endif
-        # endfor
-        nearestNeighbors[p.PlanetID()] = sorted(dists, key=lambda x: x[1])
-    # endfor
-    return actual_distances
-
-
 def identify_opportunities(my_center_of_gravity, enemy_center_of_gravity, foreign_planets, my_planets, enemy_planets):
     calculated_opportunities = {}
     if len(my_planets) > 0 and len(enemy_planets) > 0:
         for foreign_planet in foreign_planets:
             distance_to_my_center = (max_distance - (math.pow(my_center_of_gravity[0] - foreign_planet.X(), 2) +
-                                                     math.pow(my_center_of_gravity[1] - foreign_planet.Y(), 2))) / float(
+                                                     math.pow(my_center_of_gravity[1] - foreign_planet.Y(),
+                                                              2))) / float(
                 max_distance)
             distance_to_enemy_center = (max_distance - (math.pow(enemy_center_of_gravity[0] - foreign_planet.X(), 2) +
                                                         math.pow(enemy_center_of_gravity[1] - foreign_planet.Y(),
@@ -77,22 +50,15 @@ def identify_opportunities(my_center_of_gravity, enemy_center_of_gravity, foreig
 
             values = [growth_rate,
                       growth_rate * distance_to_my_center / distance_to_enemy_center,
-                      float(distance_to_my_center),
-                      float(distance_to_enemy_center),
-                      growth_rate * distance_to_my_center / foreign_planet.NumShips(),
-                      foreign_planet.NumShips() * distance_to_my_center / (
-                                  float(max_planet_ships) * distance_to_enemy_center),
-                      foreign_planet.NumShips() * foreign_planet.NumShips() / (
-                                  float(max_planet_ships) * distance_to_enemy_center),
+                      (foreign_planet.NumShips() * distance_to_my_center) /
+                      (float(max_planet_ships) * distance_to_enemy_center),
                       float(3 - foreign_planet.Owner() * 2.0),
                       float(3 - foreign_planet.Owner() * 2.0) * growth_rate,
-                      float(3 - foreign_planet.Owner() * 2.0) * (len(my_planets) / (len(enemy_planets) * 10.)),
-                      float(3 - foreign_planet.Owner() * 2.0) * distance_to_my_center,
                       growth_rate * len(my_planets) / (len(enemy_planets) + 1),
                       ]
 
-            assert (len(values) == NUMBER_OF_FEATURES)
-            opportunity = numpy.matmul(values, theta)
+            assert (len(values) == NUMBER_OF_FEATURES - 1)  # last feature decides to carry out unsuccessful attacks
+            opportunity = numpy.matmul(values, theta[:-1])
             calculated_opportunities[foreign_planet] = opportunity
             debug("Opportunity for planet {0} with {1} ships is {2}"
                   .format(foreign_planet, foreign_planet.NumShips(), opportunity))
@@ -103,6 +69,8 @@ def identify_opportunities(my_center_of_gravity, enemy_center_of_gravity, foreig
 
 
 def DoTurn(pw):
+    global actual_distances, nearest_neighbors, distances, game_turn, max_planet_ships, max_distance
+
     my_planets = utils.PlanetHelper.get_my_planets(pw)
     enemy_planets = utils.PlanetHelper.get_enemy_planets(pw)
     foreign_planets = utils.PlanetHelper.get_foreign_planets(pw)
@@ -110,9 +78,6 @@ def DoTurn(pw):
     my_center_of_gravity = utils.CenterOfGravity.calculate_center_of_gravity(my_planets)
     enemy_center_of_gravity = utils.CenterOfGravity.calculate_center_of_gravity(enemy_planets)
     all_center_of_gravity = utils.CenterOfGravity.calculate_center_of_gravity(pw.Planets())
-
-    global game_turn
-    global max_planet_ships
 
     my_size = sum(p.NumShips() for p in my_planets)
     enemy_size = sum(p.NumShips() for p in enemy_planets)
@@ -133,7 +98,9 @@ def DoTurn(pw):
         debug("WIN Ratio: " + str(win_ratio) + "\n")
         if len(distances) == 0:
             debug("Computing distances")
-            compute_planet_distances_and_max_planet_size(pw)
+
+            actual_distances, nearest_neighbors, distances, max_distance = \
+                compute_planet_distances_and_max_planet_size(pw, max_planet_size, max_distance, nearest_neighbors)
         # endif
 
         # Defense first!
@@ -154,8 +121,8 @@ def DoTurn(pw):
                         debug("Available ships on planet {0} = {1} ships".format(my_closest_planet.PlanetID(),
                                                                                  available_ships))
                         if available_ships > 0:
-                            utils.Utils.send(pw, my_closest_planet, my_planet, available_ships,
-                                             math.ceil(distances[my_closest_planet.PlanetID()][my_planet.PlanetID()]))
+                            send(pw, my_closest_planet, my_planet, available_ships,
+                                 math.ceil(distances[my_closest_planet.PlanetID()][my_planet.PlanetID()]))
                             ships_needed = ships_needed - available_ships
                         # endif
                         if ships_needed <= 0:
@@ -171,39 +138,51 @@ def DoTurn(pw):
         if planet_opportunities is not None:
             # Attack
             for target_planet, opportunity_number in planet_opportunities[:10]:
-                my_sorted_planets_for_target = sorted(my_planets,
-                                                      key=lambda x: distances[target_planet.PlanetID()][x.PlanetID()])
-                for my_planet in my_sorted_planets_for_target:
-                    if my_planet.NumShips() <= 3:
-                        continue
-                    # endif
+                if target_planet.GrowthRate() > 0:
+                    my_sorted_planets_for_target = sorted(my_planets,
+                                                          key=lambda x: distances[target_planet.PlanetID()][x.PlanetID()])
+                    for my_planet in my_sorted_planets_for_target:
+                        available_ships = utils.PlanetHelper.get_available_invasion_ships(my_planet, pw)
 
-                    distance_to_planet = distances[target_planet.PlanetID()][my_planet.PlanetID()]
-                    total_invasion_ships_for_planet = utils.PlanetHelper.get_available_invasion_ships(my_planet, pw)
-                    debug("Planet nr. {0} with {1} ships. {2} available for attack"
-                          .format(index, my_planet.NumShips(), total_invasion_ships_for_planet))
+                        if my_planet.NumShips() <= 4 or available_ships <= 1:
+                            continue
+                        # endif
 
-                    necessary_ships_to_invade = utils.PlanetHelper.get_necessary_invasion_ships(
-                        target_planet, distance_to_planet, pw, max_distance)
+                        distance_to_planet = distances[target_planet.PlanetID()][my_planet.PlanetID()]
+                        total_invasion_ships_for_planet = utils.PlanetHelper.get_available_invasion_ships(my_planet, pw)
+                        debug("Planet nr. {0} with {1} ships. {2} available for attack"
+                              .format(index, my_planet.NumShips(), total_invasion_ships_for_planet))
 
-                    if necessary_ships_to_invade > 0 and total_invasion_ships_for_planet > 0:
-                        necessary_ships_to_invade += 1
-                        sent_ships = min(total_invasion_ships_for_planet, necessary_ships_to_invade)
-                        assert (my_planet.Owner() == 1)
-                        utils.Utils.send(pw, my_planet, target_planet, sent_ships,
-                                         math.ceil(distances[my_planet.PlanetID()][target_planet.PlanetID()]))
-                        necessary_ships_to_invade = \
-                            utils.PlanetHelper.get_necessary_invasion_ships(target_planet, distance_to_planet, pw,
-                                                                            max_distance)
-                        debug(
-                            "AFTER SENDING SHIPS! Target of opportunity {0} planet {1} currently contains {2} ships "
-                            "at distance {3}. Necessary ships to take: {4}".format(
-                                utils.PlanetHelper.get_planet_type(target_planet), target_planet.PlanetID(),
-                                target_planet.NumShips(), distance_to_planet, necessary_ships_to_invade))
-                    # endif
-                # endfor
+                        necessary_ships_to_invade = utils.PlanetHelper.get_necessary_invasion_ships(
+                            target_planet, distance_to_planet, pw, max_distance)
+
+                        if necessary_ships_to_invade > 0 and total_invasion_ships_for_planet > 0:
+                            necessary_ships_to_invade += 1
+                            invade_factor = available_ships / necessary_ships_to_invade
+                            if (invade_factor * theta[-1]) > .5:
+                                sent_ships = min(total_invasion_ships_for_planet, necessary_ships_to_invade)
+                                assert (my_planet.Owner() == 1)
+                                send(pw, my_planet, target_planet, sent_ships,
+                                     math.ceil(distances[my_planet.PlanetID()][target_planet.PlanetID()]))
+                                necessary_ships_to_invade = \
+                                    utils.PlanetHelper.get_necessary_invasion_ships(target_planet, distance_to_planet, pw,
+                                                                                    max_distance)
+                                debug(
+                                    "AFTER SENDING SHIPS! Target of opportunity {0} planet {1} currently contains {2} ships "
+                                    "at distance {3}. Necessary ships to take: {4}".format(
+                                        utils.PlanetHelper.get_planet_type(target_planet), target_planet.PlanetID(),
+                                        target_planet.NumShips(), distance_to_planet, necessary_ships_to_invade))
+                            else:
+                                debug(
+                                    "DIDN'T SEND SHIPS! Target of opportunity {0} planet {1} currently contains {2} ships "
+                                    "at distance {3}. Necessary ships to take: {4}".format(
+                                        utils.PlanetHelper.get_planet_type(target_planet), target_planet.PlanetID(),
+                                        target_planet.NumShips(), distance_to_planet, necessary_ships_to_invade))
+                        # endif
+                    # endfor
+                # endif
             # endfor
-        #endif
+        # endif
 
         debug("END TURN {0} in time: {1} ms\n".format(game_turn, (time.time() - start_time) * 1000))
         game_turn += 1
@@ -216,7 +195,6 @@ def DoTurn(pw):
 
 
 def main():
-    import numpy as np
     import sys
     global theta
 
@@ -229,13 +207,9 @@ def main():
         theta = new_list
     else:
         debug("random theta")
-        # theta = numpy.random.uniform(-1, 1, (NUMBER_OF_FEATURES, 1))
-        # theta = [-3., 3., -1.57587575, - 2.01155172, - 0.56367314, - 3., 3., 0.20933694, - 3.]
-        # theta = [1.09419608,  0.86433581,  1.32171463, - 0.90643199,  0.69428202,  1.15246725, 2.08143002, - 3.]
-        # theta = [-2.47748205, - 0.11534873, 1.18014356, - 1.8960396, 0.26705994, - 1.2382747, 2.12868689, 0.09556753]
-        # theta = [-2.55941427, 1.77595241, -3., -1.79401765, -1.71735157,  0.35526823, 3., 3., -3.]
-        theta = [1.07668319, -4.67252562, -4.83999886, -3.78736198, -2.50656436,  3.8234228, 2.03809932, -1.33698956,
-                 -2.42894489, -0.07396128, -2.97208224,  1.59752637]
+        # theta = [1.07668319, -4.67252562, -4.83999886, -3.78736198, -2.50656436, 3.8234228, 0.2380]
+        theta = [0.25499724, - 0.03653183, - 0.04419227, - 0.34623976,  0.67157856,  0.39569266, 0.37693781]
+    #endif
 
     debug("starting for theta: {0}".format(str(theta)))
 
@@ -269,3 +243,110 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print 'ctrl-c, leaving ...'
+
+
+
+# /Users/rsavutiu/workspace/Python/Planet-Wars/venv/bin/python /Users/rsavutiu/workspace/Python/Planet-Wars/Runner.py "python entries/ai/MyBot.py" "python entries/3/MyBot.py"
+# /Users/rsavutiu/workspace/Python/Planet-Wars
+# won on maps/map1.txt
+# won on maps/map2.txt
+# won on maps/map3.txt
+# won on maps/map4.txt
+# won on maps/map5.txt
+# won on maps/map6.txt
+# won on maps/map7.txt
+# lost on maps/map8.txt
+# won on maps/map9.txt
+# won on maps/map10.txt
+# lost on maps/map11.txt
+# lost on maps/map12.txt
+# lost on maps/map13.txt
+# won on maps/map14.txt
+# won on maps/map15.txt
+# won on maps/map16.txt
+# won on maps/map17.txt
+# lost on maps/map18.txt
+# won on maps/map19.txt
+# won on maps/map20.txt
+# lost on maps/map21.txt
+# won on maps/map22.txt
+# lost on maps/map23.txt
+# won on maps/map24.txt
+# won on maps/map25.txt
+# lost on maps/map26.txt
+# won on maps/map27.txt
+# lost on maps/map28.txt
+# won on maps/map29.txt
+# won on maps/map30.txt
+# won on maps/map31.txt
+# lost on maps/map32.txt
+# won on maps/map33.txt
+# won on maps/map34.txt
+# lost on maps/map35.txt
+# won on maps/map36.txt
+# lost on maps/map37.txt
+# lost on maps/map38.txt
+# won on maps/map39.txt
+# won on maps/map40.txt
+# won on maps/map41.txt
+# won on maps/map42.txt
+# lost on maps/map43.txt
+# won on maps/map44.txt
+# lost on maps/map45.txt
+# won on maps/map46.txt
+# lost on maps/map47.txt
+# won on maps/map48.txt
+# lost on maps/map49.txt
+# won on maps/map50.txt
+# won on maps/map51.txt
+# won on maps/map52.txt
+# lost on maps/map53.txt
+# won on maps/map54.txt
+# won on maps/map55.txt
+# lost on maps/map56.txt
+# won on maps/map57.txt
+# lost on maps/map58.txt
+# lost on maps/map59.txt
+# won on maps/map60.txt
+# won on maps/map61.txt
+# won on maps/map62.txt
+# lost on maps/map63.txt
+# won on maps/map64.txt
+# won on maps/map65.txt
+# won on maps/map66.txt
+# lost on maps/map67.txt
+# lost on maps/map68.txt
+# won on maps/map69.txt
+# won on maps/map70.txt
+# lost on maps/map71.txt
+# won on maps/map72.txt
+# won on maps/map73.txt
+# won on maps/map74.txt
+# won on maps/map75.txt
+# won on maps/map76.txt
+# won on maps/map77.txt
+# won on maps/map78.txt
+# lost on maps/map79.txt
+# won on maps/map80.txt
+# won on maps/map81.txt
+# won on maps/map82.txt
+# won on maps/map83.txt
+# won on maps/map84.txt
+# lost on maps/map85.txt
+# won on maps/map86.txt
+# won on maps/map87.txt
+# won on maps/map88.txt
+# won on maps/map89.txt
+# won on maps/map90.txt
+# won on maps/map91.txt
+# won on maps/map92.txt
+# won on maps/map93.txt
+# won on maps/map94.txt
+# won on maps/map95.txt
+# won on maps/map96.txt
+# lost on maps/map97.txt
+# lost on maps/map98.txt
+# lost on maps/map99.txt
+# P1 wins 69.0%
+#
+# Process finished with exit code 0

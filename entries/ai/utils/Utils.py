@@ -1,8 +1,36 @@
 from Log import debug
-import FleetsHelper
 import PlanetHelper
 from PlanetWars import Fleet
-import CenterOfGravity
+import math
+
+
+def compute_planet_distances_and_max_planet_size(pw, max_planet_size, max_distance, nearest_neighbors):
+    actual_distances = []
+    distances = {}
+    planets = sorted(pw.Planets(), key=lambda x: x.PlanetID())
+    for p in planets:
+        if p.GrowthRate() > max_planet_size:
+            max_planet_size = p.GrowthRate()
+        # endif
+        dists = []
+        distances[p.PlanetID()] = {}
+        for q in planets:
+            if q.PlanetID() != p.PlanetID():
+                dx = p.X() - q.X()
+                dy = p.Y() - q.Y()
+                actual_distance = math.sqrt(dx * dx + dy * dy)
+                x = (q.PlanetID(), actual_distance)
+                dists.append(x)
+                actual_distances.append(actual_distance)
+                if actual_distance > max_distance:
+                    max_distance = actual_distance
+                # endif
+                distances[p.PlanetID()][q.PlanetID()] = actual_distance
+            # endif
+        # endfor
+        nearest_neighbors[p.PlanetID()] = sorted(dists, key=lambda x: x[1])
+    # endfor
+    return actual_distances, nearest_neighbors, distances, max_distance
 
 
 def send(pw, my_planet, target, available_invasion_ships, distance):
