@@ -45,7 +45,7 @@ END_FUZZIFY
 
 FUZZIFY distance			// Fuzzify input variable 'distance': { 'close', 'moderate', 'far' }
 	TERM close := (0, 3) (3, 3) (5,0);
-	TERM moderate := (5, 1) (10, 3) (15, 0);
+	TERM moderate := (5, 3) (10, 3) (15, 0);
 	TERM far := (10, 0) (15, 3) (100,3);
   RANGE := (0 .. 101) WITH 0.1; // Added range for distance (percentage of the biggest distance found)
 END_FUZZIFY
