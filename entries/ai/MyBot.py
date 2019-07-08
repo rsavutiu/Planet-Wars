@@ -31,7 +31,7 @@ max_distance = 0
 game_turn = 0
 theta = []
 
-NUMBER_OF_FEATURES = 7
+NUMBER_OF_FEATURES = 9
 
 
 def identify_opportunities(my_center_of_gravity, enemy_center_of_gravity, foreign_planets, my_planets, enemy_planets):
@@ -57,8 +57,8 @@ def identify_opportunities(my_center_of_gravity, enemy_center_of_gravity, foreig
                       growth_rate * len(my_planets) / (len(enemy_planets) + 1),
                       ]
 
-            assert (len(values) == NUMBER_OF_FEATURES - 1)  # last feature decides to carry out unsuccessful attacks
-            opportunity = numpy.matmul(values, theta[:-1])
+            assert (len(values) == NUMBER_OF_FEATURES - 3)  # last feature decides to carry out unsuccessful attacks
+            opportunity = numpy.matmul(values, theta[:-3])
             calculated_opportunities[foreign_planet] = opportunity
             debug("Opportunity for planet {0} with {1} ships is {2}"
                   .format(foreign_planet, foreign_planet.NumShips(), opportunity))
@@ -140,7 +140,8 @@ def DoTurn(pw):
             for target_planet, opportunity_number in planet_opportunities[:10]:
                 if target_planet.GrowthRate() > 0:
                     my_sorted_planets_for_target = sorted(my_planets,
-                                                          key=lambda x: distances[target_planet.PlanetID()][x.PlanetID()])
+                                                          key=lambda x: distances[target_planet.PlanetID()][
+                                                              x.PlanetID()])
                     for my_planet in my_sorted_planets_for_target:
                         available_ships = utils.PlanetHelper.get_available_invasion_ships(my_planet, pw)
 
@@ -158,20 +159,24 @@ def DoTurn(pw):
 
                         if necessary_ships_to_invade > 0 and total_invasion_ships_for_planet > 0:
                             necessary_ships_to_invade += 1
-                            invade_factor = available_ships / necessary_ships_to_invade
-                            if (invade_factor * theta[-1]) > .5:
+                            ship_ratio = available_ships / necessary_ships_to_invade
+                            invade_factor = ship_ratio * theta[-2] + ship_ratio * theta[-1] * \
+                                            distances[my_planet.PlanetID()][target_planet.PlanetID()] / max_distance + \
+                                            ship_ratio * theta[-3] * win_ratio
+
+                            if invade_factor > .1:
                                 sent_ships = min(total_invasion_ships_for_planet, necessary_ships_to_invade)
                                 assert (my_planet.Owner() == 1)
                                 send(pw, my_planet, target_planet, sent_ships,
                                      math.ceil(distances[my_planet.PlanetID()][target_planet.PlanetID()]))
                                 necessary_ships_to_invade = \
-                                    utils.PlanetHelper.get_necessary_invasion_ships(target_planet, distance_to_planet, pw,
+                                    utils.PlanetHelper.get_necessary_invasion_ships(target_planet, distance_to_planet,
+                                                                                    pw,
                                                                                     max_distance)
-                                debug(
-                                    "AFTER SENDING SHIPS! Target of opportunity {0} planet {1} currently contains {2} ships "
-                                    "at distance {3}. Necessary ships to take: {4}".format(
-                                        utils.PlanetHelper.get_planet_type(target_planet), target_planet.PlanetID(),
-                                        target_planet.NumShips(), distance_to_planet, necessary_ships_to_invade))
+                                debug("AFTER SENDING SHIPS! Target of opportunity {0} planet {1} "
+                                      "currently contains {2} ships at distance {3}. Necessary ships to take: {4}"
+                                      .format(utils.PlanetHelper.get_planet_type(target_planet), target_planet.PlanetID(),
+                                            target_planet.NumShips(), distance_to_planet, necessary_ships_to_invade))
                             else:
                                 debug(
                                     "DIDN'T SEND SHIPS! Target of opportunity {0} planet {1} currently contains {2} ships "
@@ -208,8 +213,8 @@ def main():
     else:
         debug("random theta")
         # theta = [1.07668319, -4.67252562, -4.83999886, -3.78736198, -2.50656436, 3.8234228, 0.2380]
-        theta = [0.25499724, - 0.03653183, - 0.04419227, - 0.34623976,  0.67157856,  0.39569266, 0.37693781]
-    #endif
+        theta = [0.25499724, - 0.03653183, - 0.04419227, - 0.34623976, 0.67157856, 0.39569266, 0.05, 0.27693781, 0.5]
+    # endif
 
     debug("starting for theta: {0}".format(str(theta)))
 
@@ -243,8 +248,6 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print 'ctrl-c, leaving ...'
-
-
 
 # /Users/rsavutiu/workspace/Python/Planet-Wars/venv/bin/python /Users/rsavutiu/workspace/Python/Planet-Wars/Runner.py "python entries/ai/MyBot.py" "python entries/3/MyBot.py"
 # /Users/rsavutiu/workspace/Python/Planet-Wars
